@@ -1,2 +1,3 @@
-##tslite v1.0
-test 1.2.3
+#tslite v1.0
+
+#a lightweight timeseries object for python 2.7+
