@@ -10,6 +10,7 @@ Author: Gunnar Leffler
 import sys,os,time,datetime,struct
 from functools import wraps
 
+##Load optional libraries
 try:
     import numpy as np
     from math import factorial  ## Factorial not in Jython 2.5.x math module
@@ -17,7 +18,13 @@ except:
     _NUMPY_AVAILABLE = False
 else:
     _NUMPY_AVAILABLE = True
-    
+
+try:
+    import sqlite3
+except:
+    _SQLITE3_AVAILABLE = False
+else:
+    _SQLITE3_AVAILABLE = True
     
 try:
   from hec.io import TimeSeriesContainer ## TODO: write conversion functions to/from TSCs.
@@ -26,8 +33,6 @@ except:
 else:
   _HECLIB_AVAILABLE = True
 
-
-## TODO:  Move into timeSeries, add self to arguments, set self.status to error message
 def requires_numpy(f):
   """ Initial stab at the requires_numpy function - raises a warning """
   @wraps(f)
@@ -39,7 +44,16 @@ def requires_numpy(f):
       return f(*args, **kwargs)
   return wrapper
 
-## TODO:  Move into timeSeries, add self to arguments, set self.status to error message
+def requires_SQLITE3(f):
+  @wraps(f)
+  def wrapper(*args, **kwargs):
+    if _SQLITE3_AVAILABLE:
+      return f(*args, **kwargs)
+    else:
+      raise Warning("SQLITE3 not availible  Cannot call %s" % f.__name__)
+      return f(*args, **kwargs)
+  return wrapper
+
 def requires_heclib(f):
   @wraps(f)
   def wrapper(*args, **kwargs):
@@ -49,6 +63,7 @@ def requires_heclib(f):
       raise Warning("HEC/Jython not available.  Cannot call %s" % f.__name__)
       return f(*args, **kwargs)
   return wrapper
+
             
 class timeseries:
   def __init__ (self, data = None):
@@ -65,6 +80,14 @@ class timeseries:
           if row[1] != None: 
             self.insert(row[0],row[1],quality=row[2])  
 
+  def __eq__(self, other):
+    if len(self.data) == 0 and  len(other.data) == 0: return True
+    if len(self.data) != len(other.data): return False
+    for i in xrange (len(self.data)):
+      if format(self.data[i][1],'.6f') != format(other.data[i][1],'.6f'):
+        return False
+    return True
+ 
   #========================================================================
   # IO and data manipulation methods
   #========================================================================
@@ -106,6 +129,82 @@ class timeseries:
         self.insert(row[0],row[1],quality=row[2])
     f.close()
     return self
+
+  @requires_SQLITE3
+  def SQLITE3connect(self, dbPath):
+    '''
+    Get a SQLITE 3 database connection
+    dbPath - path to the database file  
+    '''
+    #initialize with Default Configuration
+    self.status = "OK"
+    #Database Cursors
+    dbconn = None
+    try :
+      dbconn = sqlite3.connect(dbPath)
+      if not dbconn :
+        self.status = "\nCould not connect to %s\n" % dbname
+        self.status += "\n%s"
+    except Exception,e:
+        self.status = "\nCould not connect to %s\n" % dbname
+        self.status += "\n%s"+str(e)
+    return dbconn
+
+  @requires_SQLITE3
+  def SQLITE3disconnect(self,dbconn):
+    '''Disconnect from a SQLITE3 database connection '''
+    dbconn.close()
+
+  @requires_SQLITE3
+  def loadSQLITE3 (self,conn, tsid, start_time =None, end_time=None):
+    '''loads a timeseries from a SQLITE3 database
+    Reads a time series from the database#
+    conn - SQLITE3 connection
+    tsid - string LOC_PARAM
+    start_time - datetime
+    end_time - datetime
+    '''
+    cur = conn.cursor()
+    ts = timeseries()
+    sqltxt = "SELECT * FROM "+tsid
+    if start_time != None and end_time != None:
+      start = time.mktime(start_time.timetuple())
+      end = time.mktime(end_time.timetuple())
+      sqltxt += " WHERE timestamp >= "+str(start)+" AND timestamp <= "+str(end)
+    try:
+      cur.execute (sqltxt)
+      rows = cur.fetchall()
+      for d in rows:
+        ts.insert(datetime.datetime.fromtimestamp(d[0]),d[1],quality=d[2])
+    except Exception,e:
+        self.status = "\nCould not read %s\n" % tsid
+        self.status += "\n%s"+str(e)
+    cur.close()
+    return ts    
+
+  @requires_SQLITE3
+  def saveSQLITE3 (self,conn,tsid, replace_table = False):
+    '''saves a timeseries from to SQLITE3 database
+    Reads a time series from the database#
+    conn - SQLITE3 connection
+    tsid - string LOC_PARAM
+    replace_table = False - Set to true to replace the ts in the database
+    '''
+
+    tsid = tsid.upper()
+    try:
+      cur = conn.cursor()
+      if replace_table == True:
+        cur.execute ("DROP TABLE "+tsid)
+      cur.execute ("CREATE TABLE IF NOT EXISTS "+tsid+"(timestamp INTEGER PRIMARY KEY, val REAL, quality REAL)")
+      for line in self.data:  
+        sqltxt = "INSERT OR REPLACE INTO "+tsid+" VALUES(%d,%f,%f)" % (int(time.mktime(line[0].timetuple())),line[1],line[2])
+        cur.execute(sqltxt)
+      conn.commit()
+      cur.close()
+    except Exception, e:
+      self.status = "\nCould not store "+tsid
+      self.status += "\n%s" % str(e)
 
   def getStatus(self):
     '''exceptions get dropped into self.status
@@ -495,7 +594,7 @@ class timeseries:
 
     return timeseries(_data)
 
-
+  @requires_numpy
   def remove_stddev_outliers(self, threshold=1.5):
     '''Remove Outliers using Standard Deviation'''
     good = []
@@ -654,8 +753,8 @@ class timeseries:
       return timeseries()
     return timeseries(_data)
 
-  def snap(self,interval,buffer,starttime = None):
-    ''' Snaps a timeseries 
+  def snap2(self,interval,buffer,starttime = None):
+    ''' Snaps a timeseries (in development)
         interval: interval at which time series is snapped
         buffer : lookahead and lookback
         returns a snapped timeseries '''
@@ -695,7 +794,7 @@ class timeseries:
       return timeSeries()
     return timeSeries(_data)
 
-  def snap2(self,interval,buffer,starttime = None):
+  def snap(self,interval,buffer,starttime = None):
     ''' Snaps a timeseries (old slow version, don't use)
         interval: interval at which time series is snapped
         buffer : lookahead and lookback 
