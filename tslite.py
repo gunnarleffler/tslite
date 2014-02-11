@@ -1,10 +1,8 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.1.0
-1 Dec 2013
+v1.2.0
+1 Feb 2014
 Author: Gunnar Leffler
-      : Evan Heisman
-      : Initially (loosely) based on a perl module by Mike Stanfill     
 '''
 
 import sys,os,time,datetime,struct
@@ -80,14 +78,6 @@ class timeseries:
           if row[1] != None: 
             self.insert(row[0],row[1],quality=row[2])  
 
-  def __eq__(self, other):
-    if len(self.data) == 0 and  len(other.data) == 0: return True
-    if len(self.data) != len(other.data): return False
-    for i in xrange (len(self.data)):
-      if format(self.data[i][1],'.6f') != format(other.data[i][1],'.6f'):
-        return False
-    return True
- 
   #========================================================================
   # IO and data manipulation methods
   #========================================================================
@@ -108,6 +98,15 @@ class timeseries:
     ''' returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]'''
     if idx >= len(self.data): return [None,None,None]
     return self.data[idx]
+
+  def __eq__(self, other):
+    if len(self.data) == 0 and  len(other.data) == 0: return True
+    if len(self.data) != len(other.data): return False
+    for i in xrange (len(self.data)):
+      if format(self.data[i][1],'.6f') != format(other.data[i][1],'.6f'):
+        return False
+    return True
+
 
   def saveBinary(self,path):
     '''Outputs the timeseries to a binary file'''
@@ -252,8 +251,8 @@ class timeseries:
         imax = imid - 1; #change max index to search lower subarray
     return imid # Key not found
   
-  def insert (self, datestamp, value, quality=0):
-    '''Inserts a timestamp, value and quality into the timseries.
+  def insert2 (self, datestamp, value, quality=0):
+    '''Inserts a timestamp, value and quality into the timseries. (deprecated, old insert code)
        this module assumes that datetimes are in acending order, as such please use this method when adding data'''
     l = len(self.data)
     #print datestamp
@@ -271,6 +270,30 @@ class timeseries:
         self.data.insert(i,[datestamp, value, quality])
         return
     self.data.append([datestamp, value, quality])
+
+  def insert (self, datestamp, value, quality=0):
+    '''Inserts a timestamp, value and quality into the timseries.
+       this module assumes that datetimes are in acending order, as such please use this method when adding data'''
+    l = len(self.data)
+    if l == 0:
+      self.data.append([datestamp, value, quality])
+      return
+    if datestamp > self.data[-1][0]:
+      self.data.append([datestamp, value, quality])
+      return
+    i = self.findClosestIndex(datestamp)
+    if datestamp == self.data[i][0]:
+        self.data[i] = [datestamp, value, quality]
+        return
+    i -= 2
+    if i < 0: i = 0
+    while i < l:
+      if datestamp < self.data[i][0]:
+        self.data.insert(i,[datestamp, value, quality])
+        return
+      i += 1
+    self.data.append([datestamp, value, quality])
+
 
   def merge (self, other):
      '''Merges another timeseries into self, retruns resultant timeseries'''
@@ -387,18 +410,21 @@ class timeseries:
 
   def subSlice (self, starttime, endtime):
     '''returns a timeseries betweeen the specified start and end datetimes'''
-    _data = []
+    output = timeseries()
     if self.data == []:
-      return timeSeries()
-    try:
-      for line in self.data:
+      return output()
+    if 1 == 1:
+      pos = self.findClosestIndex(starttime)
+      a = pos -2 #subtract a few to be sure
+      if a < 0: a = 0
+      while a < len(self.data):
+        line = self.data[a]
         if line[0] > endtime:
           break
         if line[0] >= starttime:
-          _data.append(line)
-    except Exception,e:
-      self.status = str(e)
-    return timeseries(_data)
+          output.insert(line[0],line[1],quality=line[2])
+        a += 1
+    return output
 
   def averageWY(self):
     '''averages each element in the timeseries in previous water years
@@ -753,8 +779,8 @@ class timeseries:
       return timeseries()
     return timeseries(_data)
 
-  def snap2(self,interval,buffer,starttime = None):
-    ''' Snaps a timeseries (in development)
+  def snap(self,interval,buffer,starttime = None):
+    ''' Snaps a timeseries 
         interval: interval at which time series is snapped
         buffer : lookahead and lookback
         returns a snapped timeseries '''
@@ -794,7 +820,7 @@ class timeseries:
       return timeSeries()
     return timeSeries(_data)
 
-  def snap(self,interval,buffer,starttime = None):
+  def snap2(self,interval,buffer,starttime = None):
     ''' Snaps a timeseries (old slow version, don't use)
         interval: interval at which time series is snapped
         buffer : lookahead and lookback 
