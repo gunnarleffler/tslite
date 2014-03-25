@@ -426,6 +426,13 @@ class timeseries:
         a += 1
     return output
 
+  def getWY (self, WY):
+    '''Gets a water year'''
+    starttime = datetime.datetime(year=WY-1,month=10,day=1)
+    endtime = datetime.datetime(year=WY,month=9,day=30)
+    return self.subSlice(starttime,endtime)
+
+
   def averageWY(self):
     '''averages each element in the timeseries in previous water years
     returns a timeseries object
