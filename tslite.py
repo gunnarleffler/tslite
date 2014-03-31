@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.2.0
-1 Feb 2014
+v1.2.1
+1 Apr 2014
 Author: Gunnar Leffler
 '''
 
