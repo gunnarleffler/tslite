@@ -5,7 +5,7 @@ v1.2.0
 Author: Gunnar Leffler
 '''
 
-import sys,os,time,datetime,struct
+import sys,os,time,datetime,struct,math
 from functools import wraps
 
 ##Load optional libraries
@@ -407,6 +407,25 @@ class timeseries:
       interval = self.data[-1][0] - self.data[0][0]
       return self.maxmin(interval, lambda x,y: x < y).data[0]
     return None
+
+  def variance(self):
+    '''returns the variance of the timeseries as a timeslice'''
+    ss = 0
+    mu = self.globalAverage()
+    if mu != None:
+      n = 0
+      for t in self.data:
+        n += 1
+        ss += math.pow(t[1] - mu[1],2)
+      return [mu[0],ss/n,0]
+    return None
+
+  def stddev(self):
+    '''returns the standard deviation of a timeseries as a timeslice'''
+    s = self.variance()
+    if s != None:
+      s[1] = math.sqrt(s[1])
+    return s
 
   def subSlice (self, starttime, endtime):
     '''returns a timeseries betweeen the specified start and end datetimes'''
