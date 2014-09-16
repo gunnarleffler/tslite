@@ -974,13 +974,15 @@ class timeseries:
   #eg input 7d6h9m
   def TD (self, input):
     '''TD takes a relative time and turns it into a timedelta
-    input format: 7d6h9m'''
+    input format: 1w7d6h9m'''
     input = input.lower()
     output = datetime.timedelta(seconds = 0)
     t = ""
     try:
       for c in input:
-        if c =="d":
+        if c =="w":
+          output += datetime.timedelta(weeks=float(t))
+        elif c =="d":
           output += datetime.timedelta(days=float(t))
           t = ""
         elif c =="h":
