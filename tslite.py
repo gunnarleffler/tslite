@@ -5,7 +5,8 @@ v1.2.1
 Author: Gunnar Leffler
 '''
 
-import sys,os,time,datetime,struct,math
+import sys,os,time,datetime,struct,math,re
+import dateutil.parser as dateparser
 from functools import wraps
 
 ##Load optional libraries
@@ -81,7 +82,6 @@ class timeseries:
   #========================================================================
   # IO and data manipulation methods
   #========================================================================
-  ## TODO:  TS from text function - using fuzzy dateutil method
   
   def __str__ (self):
     '''Equivalent to toString() in other languages
@@ -100,6 +100,8 @@ class timeseries:
     return self.data[idx]
 
   def __eq__(self, other):
+    if other == None:
+      return False
     if len(self.data) == 0 and  len(other.data) == 0: return True
     if len(self.data) != len(other.data): return False
     for i in xrange (len(self.data)):
@@ -107,6 +109,33 @@ class timeseries:
         return False
     return True
 
+  def saveTSV(self,path):
+    '''Outputs the timeseries to a tab separated file'''
+    f = open(path,"w")
+    f.write(str(self))
+    f.close()
+
+  def loadTSV(self,path):
+    '''Reads a timeseries from a tsv. Hash (#) can be used as comments
+       Format <Datetime>\t<value>\t<quality>
+       if quality is not present,  will defualt to 0
+       This method mutates the object, and also returns a pointer to self.
+    '''
+    lines = ( line.rstrip( "\n" ) for line in open( path, "r" ) )
+    count = 0
+    for s in lines:
+      count += 1
+      s = re.sub( r'#.*', '', s )               # Strip comments
+      if re.match( r'\S', s ):                  # Ignore blank lines
+        tokens = s.split("\t")
+        try:
+          if len (tokens) == 2:
+            self.insert(dateparser.parse(tokens[0],fuzzy=True),float(tokens[1]))
+          if len (tokens) > 2:
+            self.insert(dateparser.parse(tokens[0],fuzzy=True),float(tokens[1]), quality = float(tokens[2]) )
+        except:
+          self.status = "Error Parsing %s on line %u" % (path,count)
+    return self
 
   def saveBinary(self,path):
     '''Outputs the timeseries to a binary file'''
