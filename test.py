@@ -34,3 +34,6 @@ print "variance ... "
 print probe.variance()
 print "standard deviation ... "
 print probe.stddev()
+print "linear regression ... "
+print t2.linreg()
+print t2.subtract(t2.trendline())

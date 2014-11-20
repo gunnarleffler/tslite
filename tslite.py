@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.2.1
-1 Apr 2014
+v1.3.0
+20 Nov 2014
 Author: Gunnar Leffler
 '''
 
@@ -436,6 +436,50 @@ class timeseries:
       interval = self.data[-1][0] - self.data[0][0]
       return self.maxmin(interval, lambda x,y: x < y).data[0]
     return None
+
+  def linreg (self):
+    ''' returns a tuple of linear regression cooeficinets (m,b,r)
+        for a line defined as y = mx+b
+        m - slope
+        b - slope intercept
+        r - correlation coeeficient
+        NOTE: x is in seconds past the epoch
+    '''
+    sumx = 0.0  #sum of x
+    sumx2 = 0.0 #sum of x**2
+    sumxy = 0.0 #sum of x * y
+    sumy = 0.0  #sum of y
+    sumy2 = 0.0 #sum of y**2
+    n =0
+    for tmslice in self.data:   
+      if tmslice[1] != None:
+        x = time.mktime(tmslice[0].timetuple())
+        y = tmslice[1]
+        sumx  += x;       
+        sumx2 += x**2;  
+        sumxy += x * y;
+        sumy  += y;      
+        sumy2 += y**2; 
+        n+=1
+    denom = (n * sumx2 - (sumx**2));
+    if (denom == 0): # singular matrix. can't solve the problem.
+      retrun (0,0,0)
+    m = (n * sumxy  -  sumx * sumy) / denom
+    b = (sumy * sumx2  -  sumx * sumxy) / denom
+    #compute correlation coeff     
+    r = (sumxy - sumx * sumy / n) / math.sqrt((sumx2 - (sumx**2)/n) * (sumy2 - (sumy**2)/n))
+    return (m,b,r)
+ 
+  def trendline (self):
+    '''trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice '''
+    output = timeseries()
+    coeff = self.linreg()
+    m = coeff[0]
+    b = coeff[1]
+    for tmslice in self.data:
+      x = time.mktime(tmslice[0].timetuple())
+      output.insert(tmslice[0],m*x+b,quality=tmslice[2] )
+    return output  
 
   def variance(self):
     '''returns the variance of the timeseries as a timeslice'''
