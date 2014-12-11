@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.3.0
-20 Nov 2014
+v1.3.1
+11 Dec 2014
 Author: Gunnar Leffler
 '''
 
@@ -613,6 +613,46 @@ class timeseries:
     except Exception,e:
       self.status = str(e)
     return timeseries(_data)
+
+  def accumulateWY(self,interval,incrTS, offset = datetime.timedelta(days = 0)):
+    '''
+    accumulates input timeseries and adds to self on an interval of type timedelta
+    this resets every wateryear
+    self is assumed to be an accumulated timeseries 
+    returns a timeseries object
+    '''
+    lastResetYear = 0
+    output = timeSeries() #output timeseries, don't want to mutate self
+    if incrTS.data == []:
+      return self
+    if self.data == []:
+      output.data = [incrTS.data[0]]
+    else:
+      output.data = self.data
+    try:
+      #advance to the first timeslice in the incremental timeseries that is
+      #greater than or equal the last time in self
+      i = 0
+      count = len(incrTS.data)
+      endTime = output.data[-1][0]
+      while i < count:
+        if incrTS.data[i][0] >= endTime: break
+        i += 1
+      t = timeSeries()
+      t.data = incrTS.data[i:]
+      t = t.accumulate(interval, override_startTime = endTime)
+      #loop through accumulated timeseries and accumulate timeslices onto output
+      total = output.data[-1][1]
+      for slice in t.data:
+        if slice[0].day == 1 and slice [0].month == 10 and (slice[0].hour + slice[0].minute /60.0) >= ((offset.seconds+interval.seconds) / 3600.0) and lastResetYear != slice[0].year:
+          total = 0
+          lastResetYear = slice[0].year
+        total += slice[1]
+        output.insert(slice[0],total,quality = slice[2])
+        #print "%s\t %f\t %f" %(str(slice[0]),slice[1],total)
+    except Exception,e:
+      self.status = str(e)
+    return output.timeshift(interval*-1)
 
   def simpledelta(self):
     '''calculates the delta between successive, results are in the same units as the time series
