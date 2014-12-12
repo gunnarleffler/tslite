@@ -586,18 +586,21 @@ class timeseries:
       self.status = str(e)
     return timeseries(_data)
 
-  def accumulate(self,interval):
-    '''accumulates timeseries based on a given interval of type timedelta 
+  def accumulate(self,interval, override_startTime = None):
+    '''accumulates timeseries based on a given interval of type timedelta
      returns a timeseries object'''
     _data = []
     if self.data == []:
-      return timeseries()
+      return timeSeries()
     try:
       i = 0
-      count = len(self.data)     
-      endTime = self.data[i][0]
+      count = len(self.data)
+      if override_startTime != None:
+        endTime = override_startTime
+      else:
+        endTime = self.data[i][0]
       while i < count:
-        startTime = endTime 
+        startTime = endTime
         endTime = startTime + interval
         quality = self.data[i][2]
         n = 0
@@ -612,7 +615,7 @@ class timeseries:
           _data.append([endTime,sum,quality])
     except Exception,e:
       self.status = str(e)
-    return timeseries(_data)
+    return timeSeries(_data)
 
   def accumulateWY(self,interval,incrTS, offset = datetime.timedelta(days = 0)):
     '''
@@ -918,7 +921,7 @@ class timeseries:
       return timeseries()
     return timeseries(_data)
 
-  def snap(self,interval,buffer,starttime = None):
+  def snap2(self,interval,buffer,starttime = None):
     ''' Snaps a timeseries 
         interval: interval at which time series is snapped
         buffer : lookahead and lookback
@@ -959,7 +962,7 @@ class timeseries:
       return timeSeries()
     return timeSeries(_data)
 
-  def snap2(self,interval,buffer,starttime = None):
+  def snap(self,interval,buffer,starttime = None):
     ''' Snaps a timeseries (old slow version, don't use)
         interval: interval at which time series is snapped
         buffer : lookahead and lookback 
