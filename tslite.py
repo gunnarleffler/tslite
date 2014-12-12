@@ -109,6 +109,13 @@ class timeseries:
         return False
     return True
 
+  def toDict(): 
+    '''Turns self.data into a dictionary for efficiency purposes'''
+    output = {}
+    for i in xrange(len(self.data)):
+      output[self.data[i][0]]=i  
+    return output
+
   def saveTSV(self,path):
     '''Outputs the timeseries to a tab separated file'''
     f = open(path,"w")
@@ -463,7 +470,7 @@ class timeseries:
         n+=1
     denom = (n * sumx2 - (sumx**2));
     if (denom == 0): # singular matrix. can't solve the problem.
-      retrun (0,0,0)
+      return (0,0,0)
     m = (n * sumxy  -  sumx * sumy) / denom
     b = (sumy * sumx2  -  sumx * sumxy) / denom
     #compute correlation coeff     
@@ -546,17 +553,10 @@ class timeseries:
         return True
       return False
     
-    def toDict(data): 
-      '''Turns self.data into a dictionary for efficiency purposes'''
-      output = {}
-      for i in xrange(len(self.data)):
-        output[self.data[i][0]]=i  
-      return output
-
     _data = []
     if self.data == []:
       return timeseries()
-    dd = toDict(self.data)
+    dd = self.toDict()
     try:
       i = 0
       startWY= toWY(self.data[0][0])
