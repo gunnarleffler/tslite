@@ -1001,6 +1001,40 @@ class timeseries:
       return timeseries()
     return timeseries(_data)
 
+  def filldown(self,interval,starttime = None):
+    '''fills timeslices in timeseries from the previous value until a new value is detected
+       if start time is specified, It will fill with zeroes on the interval until a value is found
+       returns a timeseries object
+    '''
+    ts = timeseries()
+    if self.data == []:
+      return ts()
+    try:
+      #setup the initial start time and value
+      val = 0
+      qual = 0
+      i = 0
+      endtime = self.data[-1][0]
+      if starttime != None:
+        t = starttime
+      else:
+        t = self.data[0][0]
+        val = self.data[0][1]
+        qual = self.data[0][2]
+      while t <= endtime and i < len(self.data):
+        while self.data[i][0] <= t:
+          val = self.data[i][1]
+          qual = self.data[i][2]
+          i += 1
+          if i == len(self.data): break
+        ts.insert(t,val,quality=qual)
+        t += interval
+    except Exception,e:
+      self.status = str(e)
+      return timeseries()
+    return ts
+
+
   def timeshift(self,tdelta):
     ''' Shifts each timestamp a given time interval
         tdelta: timedelta to shift
