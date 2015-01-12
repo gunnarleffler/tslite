@@ -109,6 +109,13 @@ class timeseries:
         return False
     return True
 
+  def toDict(): 
+    '''Turns self.data into a dictionary for efficiency purposes'''
+    output = {}
+    for i in range(len(self.data)):
+      output[self.data[i][0]]=i  
+    return output
+
   def saveTSV(self,path):
     '''Outputs the timeseries to a tab separated file'''
     f = open(path,"w")
@@ -463,7 +470,7 @@ class timeseries:
         n+=1
     denom = (n * sumx2 - (sumx**2));
     if (denom == 0): # singular matrix. can't solve the problem.
-      retrun (0,0,0)
+      return (0,0,0)
     m = (n * sumxy  -  sumx * sumy) / denom
     b = (sumy * sumx2  -  sumx * sumxy) / denom
     #compute correlation coeff     
@@ -546,17 +553,10 @@ class timeseries:
         return True
       return False
     
-    def toDict(data): 
-      '''Turns self.data into a dictionary for efficiency purposes'''
-      output = {}
-      for i in range(len(self.data)):
-        output[self.data[i][0]]=i  
-      return output
-
     _data = []
     if self.data == []:
       return timeseries()
-    dd = toDict(self.data)
+    dd = self.toDict()
     try:
       i = 0
       startWY= toWY(self.data[0][0])
@@ -1000,6 +1000,40 @@ class timeseries:
       self.status = str(e)
       return timeseries()
     return timeseries(_data)
+
+  def filldown(self,interval,starttime = None):
+    '''fills timeslices in timeseries from the previous value until a new value is detected
+       if start time is specified, It will fill with zeroes on the interval until a value is found
+       returns a timeseries object
+    '''
+    ts = timeseries()
+    if self.data == []:
+      return ts()
+    try:
+      #setup the initial start time and value
+      val = 0
+      qual = 0
+      i = 0
+      endtime = self.data[-1][0]
+      if starttime != None:
+        t = starttime
+      else:
+        t = self.data[0][0]
+        val = self.data[0][1]
+        qual = self.data[0][2]
+      while t <= endtime and i < len(self.data):
+        while self.data[i][0] <= t:
+          val = self.data[i][1]
+          qual = self.data[i][2]
+          i += 1
+          if i == len(self.data): break
+        ts.insert(t,val,quality=qual)
+        t += interval
+    except Exception as e:
+      self.status = str(e)
+      return timeseries()
+    return ts
+
 
   def timeshift(self,tdelta):
     ''' Shifts each timestamp a given time interval

@@ -109,7 +109,7 @@ class timeseries:
         return False
     return True
 
-  def toDict(): 
+  def toDict(self): 
     '''Turns self.data into a dictionary for efficiency purposes'''
     output = {}
     for i in xrange(len(self.data)):
