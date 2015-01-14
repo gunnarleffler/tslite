@@ -1001,9 +1001,10 @@ class timeseries:
       return timeseries()
     return timeseries(_data)
 
-  def filldown(self,interval,starttime = None):
+  def filldown(self,interval,starttime = None,offset = None):
     '''fills timeslices in timeseries from the previous value until a new value is detected
        if start time is specified, It will fill with zeroes on the interval until a value is found
+       if a timezone offset is passed, it will fill to the offset
        returns a timeseries object
     '''
     ts = timeseries()
@@ -1015,18 +1016,32 @@ class timeseries:
       qual = 0
       i = 0
       endtime = self.data[-1][0]
+      if offset != None:
+        #print offset
+        if endtime.hour < offset.seconds/3600:
+          endtime = datetime.datetime(year=endtime.year,day=endtime.day,month=endtime.month)
+          enditme += offset
+        else:
+          endtime = datetime.datetime(year=endtime.year,day=endtime.day,month=endtime.month)
+          endtime += offset+ datetime.timedelta(days=1)
+        #print endtime
       if starttime != None:
         t = starttime
       else:
         t = self.data[0][0]
         val = self.data[0][1]
         qual = self.data[0][2]
+        #print t
       while t <= endtime and i < len(self.data):
         while self.data[i][0] <= t:
           val = self.data[i][1]
           qual = self.data[i][2]
           i += 1
-          if i == len(self.data): break
+          if i == len(self.data): #fill to the end time
+            while t < endtime:
+              ts.insert(t,val,quality=qual)
+              t += interval
+            break
         ts.insert(t,val,quality=qual)
         t += interval
     except Exception,e:
