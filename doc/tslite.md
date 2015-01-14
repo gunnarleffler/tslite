@@ -142,8 +142,8 @@ Methods defined here:\
 **div**(self, operand)
 :   `divides an self by an operand timeseries or constant`
 
-**filldown**(self, interval, starttime=None)
-:   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found returns a timeseries object`
+**filldown**(self, interval, starttime=None, offset=None)
+:   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found if a timezone offset is passed, it will fill to the offset returns a timeseries object`
 
 **findClosestIndex**(self, key)
 :   `returns the index of a given timestamp returns closest index if not found`
@@ -252,7 +252,7 @@ Methods defined here:\
 **timeshift**(self, tdelta)
 :   `Shifts each timestamp a given time interval tdelta: timedelta to shift returns a timeseries object`
 
-**toDict**()
+**toDict**(self)
 :   `Turns self.data into a dictionary for efficiency purposes`
 
 **toHTML**(self, css='', thead='')
@@ -322,8 +322,8 @@ Methods defined here:\
 **div**(self, operand)
 :   `divides an self by an operand timeseries or constant`
 
-**filldown**(self, interval, starttime=None)
-:   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found returns a timeseries object`
+**filldown**(self, interval, starttime=None, offset=None)
+:   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found if a timezone offset is passed, it will fill to the offset returns a timeseries object`
 
 **findClosestIndex**(self, key)
 :   `returns the index of a given timestamp returns closest index if not found`
@@ -432,7 +432,7 @@ Methods defined here:\
 **timeshift**(self, tdelta)
 :   `Shifts each timestamp a given time interval tdelta: timedelta to shift returns a timeseries object`
 
-**toDict**()
+**toDict**(self)
 :   `Turns self.data into a dictionary for efficiency purposes`
 
 **toHTML**(self, css='', thead='')
