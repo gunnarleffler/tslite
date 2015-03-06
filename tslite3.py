@@ -1147,6 +1147,10 @@ class timeseries:
       for c in input:
         if c =="w":
           output += datetime.timedelta(weeks=float(t))
+          t = ""
+        elif c =="Y":
+          output += datetime.timedelta(days=float(t)*365)
+          t = ""
         elif c =="d":
           output += datetime.timedelta(days=float(t))
           t = ""
