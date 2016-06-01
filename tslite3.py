@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.3.1
-11 Dec 2014
+v1.3.2
+1 Jun 2016
 Author: Gunnar Leffler
 '''
 
@@ -230,6 +230,7 @@ class timeseries:
     try:
       cur = conn.cursor()
       if replace_table == True:
+        cur.execute ("CREATE TABLE IF NOT EXISTS "+tsid+"(timestamp INTEGER PRIMARY KEY, val REAL, quality REAL)")
         cur.execute ("DROP TABLE "+tsid)
       cur.execute ("CREATE TABLE IF NOT EXISTS "+tsid+"(timestamp INTEGER PRIMARY KEY, val REAL, quality REAL)")
       for line in self.data:  

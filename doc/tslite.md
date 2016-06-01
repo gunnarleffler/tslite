@@ -1,10 +1,13 @@
-  ------------ ---------------------------------------------------------------------
-   \           [index](.)\
-    \          [/home/gunnar/tslite/tslite.py](file:/home/gunnar/tslite/tslite.py)
-  **tslite**   
-  ------------ ---------------------------------------------------------------------
+  ------------------------------------ ------------------------------------
+   \
+    \
+  **tslite**
+  [index](.)\
+  [/home/gunnar/tslite/tslite.py](file
+  :/home/gunnar/tslite/tslite.py)
+  ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.3.1 11 Dec 2014 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.3.2 1 Jun 2016 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -13,12 +16,21 @@
 
  
 
-  ------------------------------------------ ---------------------- -------------------------- --------------------
-  [dateutil.parser](dateutil.parser.html)\   [numpy](numpy.html)\   [sqlite3](sqlite3.html)\   [time](time.html)\
-   [datetime](datetime.html)\                 [os](os.html)\         [struct](struct.html)\    
-   [math](math.html)\                         [re](re.html)\         [sys](sys.html)\          
-                                                                                               
-  ------------------------------------------ ---------------------- -------------------------- --------------------
+  ------------------------ ------------------------ ------------------------
+  [dateutil.parser](dateut
+  il.parser.html)\
+
+  [datetime](datetime.html
+  )\
+   [math](math.html)\
+  [os](os.html)\
+   [re](re.html)\
+
+  [sqlite3](sqlite3.html)\
+  [struct](struct.html)\
+   [sys](sys.html)\
+   [time](time.html)\
+  ------------------------ ------------------------ ------------------------
 
  \
  **Classes**
@@ -453,9 +465,6 @@ Methods defined here:\
 `      `
 
  
-
-**factorial**(...)
-:   `factorial(x) -> Integral   Find x!. Raise a ValueError if x is negative or non-integral.`
 
 **requires\_SQLITE3**(f)
 
