@@ -103,7 +103,8 @@ class timeseries:
     if other == None:
       return False
     if len(self.data) == 0 and  len(other.data) == 0: return True
-    if len(self.data) != len(other.data): return False
+    if len(self.data) != len(other.data): 
+      return False
     for i in xrange (len(self.data)):
       if format(self.data[i][1],'.6f') != format(other.data[i][1],'.6f'):
         return False
