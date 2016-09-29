@@ -347,7 +347,7 @@ class timeseries:
      for slice in self.data:
        i = other.findIndex(slice[0])
        if i == -1:
-         output.insert(slice[0],slice[1],quality=slice[2])
+         #output.insert(slice[0],slice[1],quality=slice[2])
          continue
        oslice = other.data[i]
        if slice[1] != oslice[1] or slice[2] != oslice[2]:
