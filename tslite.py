@@ -977,15 +977,19 @@ class timeseries:
         buffer = interval/2
       #setup the initial start time
       endtime = self.data[-1][0]
+      print len(self.data),endtime
       if starttime != None:
         t = starttime
       else:
         t = self.data[0][0]
+      count = 0
       while t <= endtime:
         tlist = []
-        for line in self.data:
+        i = 0
+        for line in self.data[count:]:
           if line[0] >= t - buffer:
             if line[0] <= t+ buffer:
+              count += 1
               tlist.append(line)
             else:
               break
@@ -998,6 +1002,7 @@ class timeseries:
               tline = line
           _data.append([t,tline[1],tline[2]])
         t += interval
+        print count,t,endtime
     except Exception,e:
       self.status = str(e)
       return timeseries()

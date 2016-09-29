@@ -31,6 +31,7 @@ result ("SQLITE3 connection", conn != None)
 result ("Save to SQLITE3 database", t.status == "OK")
 probe = tslite.timeseries().loadSQLITE3(conn,"saveSQLITE3")
 result ("Load from SQLITE3 database", t == probe)
+print t
 t2 = t.snap(t.TD("1d"),t.TD("6h"))
 probe = tslite.timeseries().loadSQLITE3(conn,"snap")
 result ("snap",probe==t2)
