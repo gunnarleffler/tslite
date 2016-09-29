@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.3.2
-1 Jun 2016
+v1.3.3
+28 Sep 2016
 Author: Gunnar Leffler
 '''
 
@@ -1003,7 +1003,7 @@ class timeseries:
       return timeseries()
     return timeseries(_data)
 
-  def filldown(self,interval,starttime = None,offset = None):
+  def filldown(self,interval,starttime = None,offset = None,_endtime = None):
     '''fills timeslices in timeseries from the previous value until a new value is detected
        if start time is specified, It will fill with zeroes on the interval until a value is found
        if a timezone offset is passed, it will fill to the offset
@@ -1018,22 +1018,22 @@ class timeseries:
       qual = 0
       i = 0
       endtime = self.data[-1][0]
+      if _endtime != None: endtime = _endtime
       if offset != None:
-        #print offset
         if endtime.hour < offset.seconds/3600:
-          endtime = datetime.datetime(year=endtime.year,day=endtime.day,month=endtime.month)
-          enditme += offset
+          endtime = datetime.datetime(year=endtime.year,day=endtime.day,month=endtime.month)+offset
+          #endtime += offset
         else:
           endtime = datetime.datetime(year=endtime.year,day=endtime.day,month=endtime.month)
           endtime += offset+ datetime.timedelta(days=1)
-        #print endtime
       if starttime != None:
         t = starttime
       else:
         t = self.data[0][0]
         val = self.data[0][1]
         qual = self.data[0][2]
-        #print t
+      #print endtime
+      #print t
       while t <= endtime and i < len(self.data):
         while self.data[i][0] <= t:
           val = self.data[i][1]
