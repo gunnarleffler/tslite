@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.3.3
+v1.4.0
 28 Sep 2016
 Author: Gunnar Leffler
 '''
@@ -72,6 +72,7 @@ class timeseries:
     self.status = "OK"
     #Data is a nested list with the following structure [datetime,float value, float quality]
     self.data = []
+    self.decimals = 3
     if data != None:
       #set internal data member to data and filter out blanks
       for row in data:
@@ -87,9 +88,10 @@ class timeseries:
     '''Equivalent to toString() in other languages
      returns a tab delineated timeseries''';
     output = ""
+    template = "%s\t%.3f\t%.2f\n"
     for line in self.data:
       try:
-        output += "%s\t%.2f\t%.2f\n" % (line[0].strftime("%d-%b-%Y %H%M"),line[1],line[2])
+        output += template % (line[0].strftime("%d-%b-%Y %H%M"),line[1],line[2])
       except:
         output += "%s\t\t\n" % line[0].strftime("%d-%b-%Y %H%M")
     return output
@@ -139,7 +141,7 @@ class timeseries:
         try:
           if len (tokens) == 2:
             self.insert(dateparser.parse(tokens[0],fuzzy=True),float(tokens[1]))
-          if len (tokens) > 2:
+          elif len (tokens) > 2:
             self.insert(dateparser.parse(tokens[0],fuzzy=True),float(tokens[1]), quality = float(tokens[2]) )
         except:
           self.status = "Error Parsing %s on line %u" % (path,count)
@@ -293,7 +295,6 @@ class timeseries:
     '''Inserts a timestamp, value and quality into the timseries. (deprecated, old insert code)
        this module assumes that datetimes are in acending order, as such please use this method when adding data'''
     l = len(self.data)
-    #print datestamp
     if l == 0:
       self.data.append([datestamp, value, quality])
       return
@@ -338,6 +339,24 @@ class timeseries:
      output = timeseries(self.data)
      for line in other.data:
        output.insert(line[0],line[1],quality=line[2])
+     return output
+
+  def diff (self, other):
+     '''Returns the differences between self and timeseries other governs'''
+     output = timeseries()
+     for slice in self.data:
+       i = other.findIndex(slice[0])
+       if i == -1:
+         output.insert(slice[0],slice[1],quality=slice[2])
+         continue
+       oslice = other.data[i]
+       if slice[1] != oslice[1] or slice[2] != oslice[2]:
+         #print "different"+str(slice)
+         output.insert(oslice[0],oslice[1],quality=oslice[2])
+     for slice in other.data:
+       i = self.findIndex(slice[0])
+       if i == -1:
+         output.insert(slice[0],slice[1],quality=slice[2])
      return output
 
   def toHTML (self, css = "",thead =""):
@@ -924,7 +943,7 @@ class timeseries:
     return timeseries(_data)
 
   def snap2(self,interval,buffer,starttime = None):
-    ''' Snaps a timeseries 
+    ''' Snaps a timeseries (experimental version )
         interval: interval at which time series is snapped
         buffer : lookahead and lookback
         returns a snapped timeseries '''
@@ -965,7 +984,7 @@ class timeseries:
     return timeSeries(_data)
 
   def snap(self,interval,buffer,starttime = None):
-    ''' Snaps a timeseries (old slow version, don't use)
+    ''' Snaps a timeseries
         interval: interval at which time series is snapped
         buffer : lookahead and lookback 
         returns a snapped timeseries '''
@@ -977,7 +996,6 @@ class timeseries:
         buffer = interval/2
       #setup the initial start time
       endtime = self.data[-1][0]
-      print len(self.data),endtime
       if starttime != None:
         t = starttime
       else:
@@ -985,7 +1003,6 @@ class timeseries:
       count = 0
       while t <= endtime:
         tlist = []
-        i = 0
         for line in self.data[count:]:
           if line[0] >= t - buffer:
             if line[0] <= t+ buffer:
@@ -1002,7 +1019,6 @@ class timeseries:
               tline = line
           _data.append([t,tline[1],tline[2]])
         t += interval
-        print count,t,endtime
     except Exception,e:
       self.status = str(e)
       return timeseries()
