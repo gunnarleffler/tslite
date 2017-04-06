@@ -3,11 +3,12 @@
     \
   **tslite**
   [index](.)\
-  [/home/gunnar/tslite/tslite.py](file
-  :/home/gunnar/tslite/tslite.py)
+  [/home/gunnar/clones/tslite/tslite.p
+  y](file:/home/gunnar/clones/tslite/t
+  slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.3.2 1 Jun 2016 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.4.1 4 Apr 2017 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -117,7 +118,8 @@ Methods defined here:\
 **TD**(self, input)
 :   `TD takes a relative time and turns it into a timedelta input format: 1w7d6h9m`
 
-**\_\_eq\_\_**(self, other)
+**\_\_eq\_\_**(self, other, precision=6)
+:   `Checks to see if a timeseries is equal to another you can specify how many decimal places to check. default is six decimals"`
 
 **\_\_getitem\_\_**(self, idx)
 :   `returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]`
@@ -151,10 +153,13 @@ Methods defined here:\
 
 **cullvalues**(self, value)
 
+**diff**(self, other)
+:   `Returns the differences between self and timeseries other governs`
+
 **div**(self, operand)
 :   `divides an self by an operand timeseries or constant`
 
-**filldown**(self, interval, starttime=None, offset=None)
+**filldown**(self, interval, starttime=None, offset=None, \_endtime=None)
 :   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found if a timezone offset is passed, it will fill to the offset returns a timeseries object`
 
 **findClosestIndex**(self, key)
@@ -247,10 +252,10 @@ Methods defined here:\
 :   `calculates the delta between successive, results are in the same units as the time series returns a timeseries object`
 
 **snap**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries (old slow version, don't use) interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries`
+:   `Snaps a timeseries (experimental version ) interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
 
 **snap2**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries  interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
+:   `Snaps a timeseries interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries   NOTE: old legacy code, donot use`
 
 **stddev**(self)
 :   `returns the standard deviation of a timeseries as a timeslice`
@@ -297,7 +302,8 @@ Methods defined here:\
 **TD**(self, input)
 :   `TD takes a relative time and turns it into a timedelta input format: 1w7d6h9m`
 
-**\_\_eq\_\_**(self, other)
+**\_\_eq\_\_**(self, other, precision=6)
+:   `Checks to see if a timeseries is equal to another you can specify how many decimal places to check. default is six decimals"`
 
 **\_\_getitem\_\_**(self, idx)
 :   `returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]`
@@ -331,10 +337,13 @@ Methods defined here:\
 
 **cullvalues**(self, value)
 
+**diff**(self, other)
+:   `Returns the differences between self and timeseries other governs`
+
 **div**(self, operand)
 :   `divides an self by an operand timeseries or constant`
 
-**filldown**(self, interval, starttime=None, offset=None)
+**filldown**(self, interval, starttime=None, offset=None, \_endtime=None)
 :   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found if a timezone offset is passed, it will fill to the offset returns a timeseries object`
 
 **findClosestIndex**(self, key)
@@ -427,10 +436,10 @@ Methods defined here:\
 :   `calculates the delta between successive, results are in the same units as the time series returns a timeseries object`
 
 **snap**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries (old slow version, don't use) interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries`
+:   `Snaps a timeseries (experimental version ) interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
 
 **snap2**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries  interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
+:   `Snaps a timeseries interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries   NOTE: old legacy code, donot use`
 
 **stddev**(self)
 :   `returns the standard deviation of a timeseries as a timeslice`
