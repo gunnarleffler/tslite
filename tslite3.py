@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.4.1
-4 Apr 2017
+v1.4.2
+12 Jun 2017
 Author: Gunnar Leffler
 '''
 
@@ -86,7 +86,7 @@ class timeseries:
     if data != None:
       #set internal data member to data and filter out blanks
       for row in data:
-        if row != []:
+        if len (row) > 2:
           if row[1] != None:
             self.insert(row[0], row[1], quality=row[2])
 
@@ -380,11 +380,9 @@ class timeseries:
     for slice in self.data:
       i = other.findIndex(slice[0])
       if i == -1:
-        #output.insert(slice[0],slice[1],quality=slice[2])
         continue
       oslice = other.data[i]
-      if slice[1] != oslice[1] or slice[2] != oslice[2]:
-        #print "different"+str(slice)
+      if format(slice[1],'.6f') != format(oslice[1],'.6f'):
         output.insert(oslice[0], oslice[1], quality=oslice[2])
     for slice in other.data:
       i = self.findIndex(slice[0])
@@ -993,7 +991,7 @@ class timeseries:
     return timeseries(_data)
 
   def snap(self, interval, buffer, starttime=None):
-    ''' Snaps a timeseries (experimental version )
+    ''' Snaps a timeseries 
         interval: interval at which time series is snapped
         buffer : lookahead and lookback
         returns a snapped timeseries '''
@@ -1028,12 +1026,11 @@ class timeseries:
     return output
 
   def snap2(self, interval, buffer, starttime=None):
-    ''' Snaps a timeseries
+    ''' Snaps a timeseries (old slow version, do not use)
         interval: interval at which time series is snapped
         buffer : lookahead and lookback 
         returns a snapped timeseries
-        
-        NOTE: old legacy code, donot use '''
+    '''
     _data = []
     if self.data == []:
       return timeseries()
@@ -1102,8 +1099,6 @@ class timeseries:
         t = self.data[0][0]
         val = self.data[0][1]
         qual = self.data[0][2]
-      #print endtime
-      #print t
       while t <= endtime and i < len(self.data):
         while self.data[i][0] <= t:
           val = self.data[i][1]
@@ -1133,7 +1128,6 @@ class timeseries:
         _data.append([line[0] + tdelta, line[1], line[2]])
     except Exception as e:
       self.status = str(e)
-      print(e)
       return timeseries()
     return timeseries(_data)
 
@@ -1173,7 +1167,6 @@ class timeseries:
             _data.append([line[0], op(line[1], val), line[2]])
     except Exception as e:
       self.status = str(e)
-      print(e)
       return timeseries()
     return timeseries(_data)
 
@@ -1198,11 +1191,10 @@ class timeseries:
         for line in self.data:
           val = operand.findValue(line[0])
           if val != None:
-            if op(val, operand):
-              _data.append([line])
+            if op(line[1], val):
+              _data.append(line)
     except Exception as e:
       self.status = str(e)
-      print(e)
       return timeseries()
     return timeseries(_data)
 

@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.4.1 4 Apr 2017 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.4.2 12 Jun 2017 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -252,10 +252,10 @@ Methods defined here:\
 :   `calculates the delta between successive, results are in the same units as the time series returns a timeseries object`
 
 **snap**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries (experimental version ) interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
+:   `Snaps a timeseries  interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
 
 **snap2**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries   NOTE: old legacy code, donot use`
+:   `Snaps a timeseries (old slow version, do not use) interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries`
 
 **stddev**(self)
 :   `returns the standard deviation of a timeseries as a timeslice`
@@ -436,10 +436,10 @@ Methods defined here:\
 :   `calculates the delta between successive, results are in the same units as the time series returns a timeseries object`
 
 **snap**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries (experimental version ) interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
+:   `Snaps a timeseries  interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
 
 **snap2**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries   NOTE: old legacy code, donot use`
+:   `Snaps a timeseries (old slow version, do not use) interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries`
 
 **stddev**(self)
 :   `returns the standard deviation of a timeseries as a timeslice`

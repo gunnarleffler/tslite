@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.4.1
-4 Apr 2017
+v1.4.2
+12 Jun 2017
 Author: Gunnar Leffler
 '''
 
@@ -86,7 +86,7 @@ class timeseries:
     if data != None:
       #set internal data member to data and filter out blanks
       for row in data:
-        if row != []:
+        if len (row) > 2:
           if row[1] != None:
             self.insert(row[0], row[1], quality=row[2])
 
@@ -1191,8 +1191,8 @@ class timeseries:
         for line in self.data:
           val = operand.findValue(line[0])
           if val != None:
-            if op(val, operand):
-              _data.append([line])
+            if op(line[1], val):
+              _data.append(line)
     except Exception, e:
       self.status = str(e)
       return timeseries()
