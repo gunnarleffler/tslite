@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.4.2
+v1.5.0
 12 Jun 2017
 Author: Gunnar Leffler
 '''
@@ -323,25 +323,6 @@ class timeseries:
         imax = imid - 1
         #change max index to search lower subarray
     return imid  # Key not found
-
-  def insert2(self, datestamp, value, quality=0):
-    '''Inserts a timestamp, value and quality into the timseries. (deprecated, old insert code)
-       this module assumes that datetimes are in acending order, as such please use this method when adding data'''
-    l = len(self.data)
-    if l == 0:
-      self.data.append([datestamp, value, quality])
-      return
-    if datestamp > self.data[-1][0]:
-      self.data.append([datestamp, value, quality])
-      return
-    for i in xrange(l):
-      if datestamp == self.data[i][0]:
-        self.data[i] = [datestamp, value, quality]
-        return
-      elif datestamp < self.data[i][0]:
-        self.data.insert(i, [datestamp, value, quality])
-        return
-    self.data.append([datestamp, value, quality])
 
   def insert(self, datestamp, value, quality=0):
     '''Inserts a timestamp, value and quality into the timseries.
@@ -1197,6 +1178,24 @@ class timeseries:
       self.status = str(e)
       return timeseries()
     return timeseries(_data)
+
+  def cut(self, other):
+    ''' cuts a timeseries from self where datetimes intersect with
+        other. 
+        returns a timeseries object
+    '''
+    output = timeseries()
+    if self.data == []:
+      return timeseries()
+    try:
+      for line in other.data:
+        val = self.findValue(line[0])
+        if val != None:
+          output.insert(line[0],line[1],quality=line[2])
+    except Exception, e:
+      self.status = str(e)
+      return timeseries()
+    return output
 
   #This takes a relative time and turns it into a timedelta
   #eg input 7d6h9m

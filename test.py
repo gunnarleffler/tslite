@@ -56,4 +56,7 @@ t3 = t2.cull(lambda x,y: x>y,r)
 #t3.saveTSV("test/TScull.tsv")
 probe=tslite.timeseries().loadTSV("test/TScull.tsv")
 result ("TS cull", t3.__eq__(probe, precision = 2))
+t = t2.cut(t3)
+result ("cut", t.__eq__(probe, precision = 2))
+
 
