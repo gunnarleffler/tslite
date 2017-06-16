@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.4.2 12 Jun 2017 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.5.0 12 Jun 2017 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -153,6 +153,9 @@ Methods defined here:\
 
 **cullvalues**(self, value)
 
+**cut**(self, other)
+:   `cuts a timeseries from self where datetimes intersect with other.  returns a timeseries object`
+
 **diff**(self, other)
 :   `Returns the differences between self and timeseries other governs`
 
@@ -189,9 +192,6 @@ Methods defined here:\
 **insert**(self, datestamp, value, quality=0)
 :   `Inserts a timestamp, value and quality into the timseries. this module assumes that datetimes are in acending order, as such please use this method when adding data`
 
-**insert2**(self, datestamp, value, quality=0)
-:   `Inserts a timestamp, value and quality into the timseries. (deprecated, old insert code) this module assumes that datetimes are in acending order, as such please use this method when adding data`
-
 **interpolate**(self, interval)
 :   `interpolates timeseries based on a given interval of type timedelta returns a timeseries object`
 
@@ -220,6 +220,9 @@ Methods defined here:\
 
 **movingaverage**(self, interval)
 :   `averages timeseries based on a given interval of type timedelta. This differs from rollingaverage because it looks backwards.  returns a timeseries object`
+
+**movingstddev**(self, interval)
+:   `Returns a moving standard deviaton over specified interval.   returns a timeseries object`
 
 **mul**(self, operand)
 :   `multiplies an operand timeseries or constant to self`
@@ -254,9 +257,6 @@ Methods defined here:\
 **snap**(self, interval, buffer, starttime=None)
 :   `Snaps a timeseries  interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
 
-**snap2**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries (old slow version, do not use) interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries`
-
 **stddev**(self)
 :   `returns the standard deviation of a timeseries as a timeslice`
 
@@ -277,6 +277,9 @@ Methods defined here:\
 
 **toJS**(self, var, timefmt='%m/%d/%Y %k:%M:%S')
 :   `returns self as a JS array`
+
+**toJSON**(self, timefmt='%m/%d/%Y %k:%M:%S')
+:   `returns self as a JSON object`
 
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`
@@ -337,6 +340,9 @@ Methods defined here:\
 
 **cullvalues**(self, value)
 
+**cut**(self, other)
+:   `cuts a timeseries from self where datetimes intersect with other.  returns a timeseries object`
+
 **diff**(self, other)
 :   `Returns the differences between self and timeseries other governs`
 
@@ -373,9 +379,6 @@ Methods defined here:\
 **insert**(self, datestamp, value, quality=0)
 :   `Inserts a timestamp, value and quality into the timseries. this module assumes that datetimes are in acending order, as such please use this method when adding data`
 
-**insert2**(self, datestamp, value, quality=0)
-:   `Inserts a timestamp, value and quality into the timseries. (deprecated, old insert code) this module assumes that datetimes are in acending order, as such please use this method when adding data`
-
 **interpolate**(self, interval)
 :   `interpolates timeseries based on a given interval of type timedelta returns a timeseries object`
 
@@ -404,6 +407,9 @@ Methods defined here:\
 
 **movingaverage**(self, interval)
 :   `averages timeseries based on a given interval of type timedelta. This differs from rollingaverage because it looks backwards.  returns a timeseries object`
+
+**movingstddev**(self, interval)
+:   `Returns a moving standard deviaton over specified interval.   returns a timeseries object`
 
 **mul**(self, operand)
 :   `multiplies an operand timeseries or constant to self`
@@ -438,9 +444,6 @@ Methods defined here:\
 **snap**(self, interval, buffer, starttime=None)
 :   `Snaps a timeseries  interval: interval at which time series is snapped buffer : lookahead and lookback returns a snapped timeseries`
 
-**snap2**(self, interval, buffer, starttime=None)
-:   `Snaps a timeseries (old slow version, do not use) interval: interval at which time series is snapped buffer : lookahead and lookback  returns a snapped timeseries`
-
 **stddev**(self)
 :   `returns the standard deviation of a timeseries as a timeslice`
 
@@ -461,6 +464,9 @@ Methods defined here:\
 
 **toJS**(self, var, timefmt='%m/%d/%Y %k:%M:%S')
 :   `returns self as a JS array`
+
+**toJSON**(self, timefmt='%m/%d/%Y %k:%M:%S')
+:   `returns self as a JSON object`
 
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`

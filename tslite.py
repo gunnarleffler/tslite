@@ -86,7 +86,7 @@ class timeseries:
     if data != None:
       #set internal data member to data and filter out blanks
       for row in data:
-        if len (row) > 2:
+        if len(row) > 2:
           if row[1] != None:
             self.insert(row[0], row[1], quality=row[2])
 
@@ -363,7 +363,7 @@ class timeseries:
       if i == -1:
         continue
       oslice = other.data[i]
-      if format(slice[1],'.6f') != format(oslice[1],'.6f'):
+      if format(slice[1], '.6f') != format(oslice[1], '.6f'):
         output.insert(oslice[0], oslice[1], quality=oslice[2])
     for slice in other.data:
       i = self.findIndex(slice[0])
@@ -386,13 +386,17 @@ class timeseries:
 
   def toJS(self, var, timefmt="%m/%d/%Y %k:%M:%S"):
     '''returns self as a JS array'''
+    return "var %s = %s;\n" % (var, self.toJSON())
+
+  def toJSON(self, timefmt="%m/%d/%Y %k:%M:%S"):
+    '''returns self as a JSON object'''
     output = []
     for line in self.data:
       try:
-        output.append('["%s",%.2f]' % (line[0].strftime(timefmt), line[1]))
+        output.append('  ["%s",%.2f]' % (line[0].strftime(timefmt), line[1]))
       except:
-        output.append('["%s", undefined]' % line[0].strftime(timefmt))
-    return "var " + var + " =[" + ",\n".join(output) + "];\n"
+        output.append('  ["%s", undefined]' % line[0].strftime(timefmt))
+    return "[\n%s\n]" % ",\n".join(output)
 
   def minDate(self, timefmt="%m/%d/%Y %k:%M:%S"):
     try:
@@ -414,6 +418,7 @@ class timeseries:
     '''interpolates timeseries based on a given interval of type timedelta
     returns a timeseries object
     '''
+    interval = self.TD(interval)
     _data = []
     try:
       for i in xrange(0, len(self.data) - 1):
@@ -424,8 +429,8 @@ class timeseries:
         for j in xrange(0, steps):
           value = self.interpolateValue(0, self.data[i][1],
                                         deltaT.total_seconds(),
-                                        self.data[i + 1][1], j *
-                                        interval.total_seconds())
+                                        self.data[i + 1][1],
+                                        j * interval.total_seconds())
           _data.append([startTime + (interval * j), value, quality])
     except Exception, e:
       self.status = str(e)
@@ -435,6 +440,7 @@ class timeseries:
     '''averages timeseries based on a given interval of type timedelta
        returns a timeseries object
     '''
+    interval = self.TD(interval)
     _data = []
     if self.data == []:
       return timeseries()
@@ -545,6 +551,19 @@ class timeseries:
       s[1] = math.sqrt(s[1])
     return s
 
+  def movingstddev(self, interval):
+    '''Returns a moving standard deviaton over specified interval.  
+       returns a timeseries object'''
+    output = timeseries()
+    interval = self.TD(interval)
+    if self.data != [] and interval.total_seconds != 0:
+      pointer = self.data[0][0]
+      while pointer < self.data[-1][0]:
+        stddev = self.subSlice(pointer, pointer + interval).stddev()
+        output.data.append(stddev)
+        pointer += interval
+    return output
+
   def subSlice(self, starttime, endtime):
     '''returns a timeseries betweeen the specified start and end datetimes'''
     output = timeseries()
@@ -636,6 +655,7 @@ class timeseries:
   def accumulate(self, interval, override_startTime=None):
     '''accumulates timeseries based on a given interval of type timedelta
      returns a timeseries object'''
+    interval = self.TD(interval)
     _data = []
     if self.data == []:
       return timeseries()
@@ -671,6 +691,7 @@ class timeseries:
     self is assumed to be an accumulated timeseries 
     returns a timeseries object
     '''
+    interval = self.TD(interval)
     lastResetYear = 0
     output = timeseries()  #output timeseries, don't want to mutate self
     if incrTS.data == []:
@@ -726,6 +747,7 @@ class timeseries:
     '''returns a max or a min based for a given interval of type datetime
        returns a timeseries object
     '''
+    interval = self.TD(interval)
     _data = []
     if self.data == []:
       return timeseries()
@@ -860,6 +882,7 @@ class timeseries:
   def rollingaverage(self, interval):
     '''averages timeseries based on a given interval of type timedelta. Moving average looking forward. 
        returns a timeseries object'''
+    interval = self.TD(interval)
     _data = []
     if self.data == []:
       return timeseries()
@@ -889,6 +912,7 @@ class timeseries:
   def movingaverage(self, interval):
     '''averages timeseries based on a given interval of type timedelta. This differs from rollingaverage because it looks backwards. 
        returns a timeseries object'''
+    interval = self.TD(interval)
     _data = []
     if self.data == []:
       return timeseries()
@@ -917,6 +941,7 @@ class timeseries:
   def centerMovingAverage(self, interval):
     '''averages timeseries based on a given interval of type timedelta 
       returns a timeseries object containing center moving average'''
+    interval = self.TD(interval)
     _data = []
     if self.data == []:
       return timeseries()
@@ -977,6 +1002,8 @@ class timeseries:
         buffer : lookahead and lookback
         returns a snapped timeseries '''
     output = timeseries()
+    interval = self.TD(interval)
+    buffer = self.TD(buffer)
     if self.data == []:
       return output
     try:
@@ -1006,54 +1033,13 @@ class timeseries:
       return timeseries()
     return output
 
-  def snap2(self, interval, buffer, starttime=None):
-    ''' Snaps a timeseries (old slow version, do not use)
-        interval: interval at which time series is snapped
-        buffer : lookahead and lookback 
-        returns a snapped timeseries
-    '''
-    _data = []
-    if self.data == []:
-      return timeseries()
-    try:
-      if buffer > interval / 2:
-        buffer = interval / 2
-      #setup the initial start time
-      endtime = self.data[-1][0]
-      if starttime != None:
-        t = starttime
-      else:
-        t = self.data[0][0]
-      count = 0
-      while t <= endtime:
-        tlist = []
-        for line in self.data[count:]:
-          if line[0] >= t - buffer:
-            if line[0] <= t + buffer:
-              count += 1
-              tlist.append(line)
-            else:
-              break
-        if len(tlist) > 0:
-          tline = tlist[0]
-          for line in tlist:
-            curdiff = abs(tline[0] - t).seconds
-            newdiff = abs(line[0] - t).seconds
-            if (curdiff > newdiff):
-              tline = line
-          _data.append([t, tline[1], tline[2]])
-        t += interval
-    except Exception, e:
-      self.status = str(e)
-      return timeseries()
-    return timeseries(_data)
-
   def filldown(self, interval, starttime=None, offset=None, _endtime=None):
     '''fills timeslices in timeseries from the previous value until a new value is detected
        if start time is specified, It will fill with zeroes on the interval until a value is found
        if a timezone offset is passed, it will fill to the offset
        returns a timeseries object
     '''
+    interval = self.TD(interval)
     ts = timeseries()
     if self.data == []:
       return ts()
@@ -1191,7 +1177,7 @@ class timeseries:
       for line in other.data:
         val = self.findValue(line[0])
         if val != None:
-          output.insert(line[0],line[1],quality=line[2])
+          output.insert(line[0], line[1], quality=line[2])
     except Exception, e:
       self.status = str(e)
       return timeseries()
@@ -1201,8 +1187,10 @@ class timeseries:
   #eg input 7d6h9m
   def TD(self, input):
     '''TD takes a relative time and turns it into a timedelta
-    input format: 1w7d6h9m'''
-    input = input.lower()
+    input format: 1w7d6h9m
+    '''
+    if not isinstance(input, basestring):
+      return input
     output = datetime.timedelta(seconds=0)
     t = ""
     try:
