@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.5.0 12 Jun 2017 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.6.0 07 Aug 2017 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -239,6 +239,9 @@ Methods defined here:\
 **rollingaverage**(self, interval)
 :   `averages timeseries based on a given interval of type timedelta. Moving average looking forward.  returns a timeseries object`
 
+**round**(self, precision)
+:   `Rounds values in timeseries to a given number of decimal places`
+
 **saveBinary**(self, path)
 :   `Outputs the timeseries to a binary file`
 
@@ -283,6 +286,9 @@ Methods defined here:\
 
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`
+
+**truncate**(self, precision)
+:   `Truncates values in timeseries to a given number of decimal places`
 
 **variance**(self)
 :   `returns the variance of the timeseries as a timeslice`
@@ -426,6 +432,9 @@ Methods defined here:\
 **rollingaverage**(self, interval)
 :   `averages timeseries based on a given interval of type timedelta. Moving average looking forward.  returns a timeseries object`
 
+**round**(self, precision)
+:   `Rounds values in timeseries to a given number of decimal places`
+
 **saveBinary**(self, path)
 :   `Outputs the timeseries to a binary file`
 
@@ -470,6 +479,9 @@ Methods defined here:\
 
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`
+
+**truncate**(self, precision)
+:   `Truncates values in timeseries to a given number of decimal places`
 
 **variance**(self)
 :   `returns the variance of the timeseries as a timeslice`

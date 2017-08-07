@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.5.0
-12 Jun 2017
+v1.6.0
+07 Aug 2017
 Author: Gunnar Leffler
 '''
 
@@ -256,7 +256,6 @@ class timeseries:
     tsid - string LOC_PARAM
     replace_table = False - Set to true to replace the ts in the database
     '''
-
     tsid = tsid.upper()
     try:
       cur = conn.cursor()
@@ -347,6 +346,23 @@ class timeseries:
         return
       i += 1
     self.data.append([datestamp, value, quality])
+
+  def truncate(self, precision):
+    '''Truncates values in timeseries to a given number of decimal places
+    '''
+    fmt = '.' + str(precision) + 'f'
+    output = timeseries()
+    for slice in self.data:
+      output.insert(slice[0], float(format(slice[1], fmt)), quality=slice[2])
+    return output
+
+  def round(self, precision):
+    '''Rounds values in timeseries to a given number of decimal places
+    '''
+    output = timeseries()
+    for slice in self.data:
+      output.insert(slice[0], round(slice[1], precision), quality=slice[2])
+    return output
 
   def merge(self, other):
     '''Merges another timeseries into self, retruns resultant timeseries'''

@@ -68,9 +68,16 @@ t1 = t2.cut(t3)
 result ("cut", t1.__eq__(probe, precision = 2))
 
 t1 = t.movingstddev("1d")
-#t1.saveTSV("test/movingSTDDEV.tsv")
 probe=tslite.timeseries().loadTSV("test/movingSTDDEV.tsv")
 result ("Moving Standard Deviation", t1.__eq__(probe, precision = 2))
 
 probe = open("test/test.json","r").read()
 result ("toJSON", t1.toJSON() == probe);
+#t1.saveTSV("test/round.tsv")
+probe=tslite.timeseries().loadTSV("test/round.tsv")
+result ("round", t1.round(2) == probe);
+
+probe=tslite.timeseries().loadTSV("test/truncate.tsv")
+result ("truncate", t1.truncate(2) == probe);
+
+
