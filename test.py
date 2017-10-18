@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import datetime,sys,os
-import tslite, json
+import datetime,sys,os,io
+import tslite, json, zlib
 import dateutil.parser
 
 def result (text,cond):
@@ -26,6 +26,16 @@ result ("Load Binary Data",(len(t.data) > 0))
 
 t.saveBinary("test/test2.dat")
 result ("Save Binary Data",t.status == "OK")
+
+print " compressing timeseries of length %d..." % (len(t))
+b = t.toBinary()
+z = zlib.compress(buffer(b),9)
+print " %d bytes, %d bytes compressed" % (len(b),len(z))
+b = zlib.decompress(z)
+probe = tslite.timeseries().fromBinary(b)
+print " decompressed %d lines" % (len(probe))
+result ("Binary compression in memory", t == probe)
+
 conn = tslite.timeseries().SQLITE3connect("test/test.db") 
 result ("SQLITE3 connection", conn != None)
 
