@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.6.0
-07 Aug 2017
+v1.6.2
+17 Oct 2017
 Author: Gunnar Leffler
 '''
 
@@ -108,10 +108,14 @@ class timeseries:
     return output
 
   def __getitem__(self, idx):
-    ''' returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]'''
+    ''' returns (gets) a timeslice from self.data from supplied index.
+        Example : ts[1] would return [datetime,value,quality]'''
     if idx >= len(self.data):
       return [None, None, None]
     return self.data[idx]
+
+  def __len__ (self):
+    return (len(self.data))
 
   def __eq__(self, other, precision=6):
     '''Checks to see if a timeseries is equal to another
@@ -144,12 +148,18 @@ class timeseries:
     f.close()
 
   def loadTSV(self, path):
-    '''Reads a timeseries from a tsv. Hash (#) can be used as comments
+    '''Reads a timeseries from a tsv file. Hash (#) can be used as comments
        Format <Datetime>\t<value>\t<quality>
        if quality is not present,  will defualt to 0
        This method mutates the object, and also returns a pointer to self.
     '''
     lines = (line.rstrip("\n") for line in open(path, "r"))
+    return self.fromTSV(lines)
+
+  def fromTSV (self, lines):
+    '''reads a timeseries from a TSV string 
+       This method mutates the object, and also returns a pointer to self.
+    '''
     count = 0
     for s in lines:
       count += 1
@@ -174,25 +184,36 @@ class timeseries:
   def saveBinary(self, path):
     '''Outputs the timeseries to a binary file'''
     f = open(path, "wb")
-    for line in self.data:
-      f.write(
-          struct.pack("iff",
-                      int(time.mktime(line[0].timetuple())), line[1], line[2]))
+    f.write(self.toBinary())
     f.close()
+
+  def toBinary(self):
+    '''Outputs the timeseries to a binary bytearray'''
+    o = bytearray()
+    for line in self.data:
+      a,b,c = (int(time.mktime(line[0].timetuple())), line[1], line[2])
+      o.extend(struct.pack("iff",a,b,c))
+    return o
 
   def loadBinary(self, path):
     '''Reads the timeseries from a binary file and inserts values into self'''
+    buf = bytearray(os.path.getsize(path))
     with open(path, "rb") as f:
-      while True:
-        bytes_read = f.read(struct.calcsize("iff"))
-        if not bytes_read:
-          break
-        d = struct.unpack("iff", bytes_read)
-        row = [datetime.datetime.fromtimestamp(d[0])]
-        row.append(d[1])
-        row.append(d[2])
-        self.insert(row[0], row[1], quality=row[2])
+      f.readinto(buf) 
+      self.fromBinary(buf)
     f.close()
+    return self
+
+  def fromBinary(self, buf):
+    '''Reads the timeseries from a binary buffer'''
+    size = struct.calcsize("iff")
+    buflen = len(buf)
+    if buflen >= size:
+      i = 0
+      while i < buflen:
+        d = struct.unpack("iff", buf[i:i+size])
+        self.insert(datetime.datetime.fromtimestamp(d[0]), d[1],quality=d[2])
+        i += size
     return self
 
   @requires_SQLITE3

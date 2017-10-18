@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.6.0 07 Aug 2017 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.6.2 17 Oct 2017 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -122,10 +122,12 @@ Methods defined here:\
 :   `Checks to see if a timeseries is equal to another you can specify how many decimal places to check. default is six decimals"`
 
 **\_\_getitem\_\_**(self, idx)
-:   `returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]`
+:   `returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]`
 
 **\_\_init\_\_**(self, data=None)
 :   `"overloaded" timeseries constructor expects data to be tuple of datetime obj, observation value (typically float), and a quality flag)`
+
+**\_\_len\_\_**(self)
 
 **\_\_str\_\_**(self)
 :   `Equivalent to toString() in other languages returns a tab delineated timeseries`
@@ -174,6 +176,12 @@ Methods defined here:\
 **findValue**(self, timestamp)
 :   `returns a value at a given timestamp returns None type if not found`
 
+**fromBinary**(self, buf)
+:   `Reads the timeseries from a binary buffer`
+
+**fromTSV**(self, lines)
+:   `reads a timeseries from a TSV string  This method mutates the object, and also returns a pointer to self.`
+
 **getStatus**(self)
 :   `exceptions get dropped into self.status This method gets status message of object and resets self.status to "OK"`
 
@@ -208,7 +216,7 @@ Methods defined here:\
 :   `loads a timeseries from a SQLITE3 database Reads a time series from the database# conn - SQLITE3 connection tsid - string LOC_PARAM start_time - datetime end_time - datetime`
 
 **loadTSV**(self, path)
-:   `Reads a timeseries from a tsv. Hash (#) can be used as comments Format <Datetime>        <value> <quality> if quality is not present,  will defualt to 0 This method mutates the object, and also returns a pointer to self.`
+:   `Reads a timeseries from a tsv file. Hash (#) can be used as comments Format <Datetime>        <value> <quality> if quality is not present,  will defualt to 0 This method mutates the object, and also returns a pointer to self.`
 
 **maxmin**(self, interval, cmp)
 :   `returns a max or a min based for a given interval of type datetime returns a timeseries object`
@@ -271,6 +279,9 @@ Methods defined here:\
 
 **timeshift**(self, tdelta)
 :   `Shifts each timestamp a given time interval tdelta: timedelta to shift returns a timeseries object`
+
+**toBinary**(self)
+:   `Outputs the timeseries to a binary bytearray`
 
 **toDict**(self)
 :   `Turns self.data into a dictionary for efficiency purposes`
@@ -315,10 +326,12 @@ Methods defined here:\
 :   `Checks to see if a timeseries is equal to another you can specify how many decimal places to check. default is six decimals"`
 
 **\_\_getitem\_\_**(self, idx)
-:   `returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]`
+:   `returns (gets) a timeslice from self.data from supplied index. Example : ts[1] would return [datetime,value,quality]`
 
 **\_\_init\_\_**(self, data=None)
 :   `"overloaded" timeseries constructor expects data to be tuple of datetime obj, observation value (typically float), and a quality flag)`
+
+**\_\_len\_\_**(self)
 
 **\_\_str\_\_**(self)
 :   `Equivalent to toString() in other languages returns a tab delineated timeseries`
@@ -367,6 +380,12 @@ Methods defined here:\
 **findValue**(self, timestamp)
 :   `returns a value at a given timestamp returns None type if not found`
 
+**fromBinary**(self, buf)
+:   `Reads the timeseries from a binary buffer`
+
+**fromTSV**(self, lines)
+:   `reads a timeseries from a TSV string  This method mutates the object, and also returns a pointer to self.`
+
 **getStatus**(self)
 :   `exceptions get dropped into self.status This method gets status message of object and resets self.status to "OK"`
 
@@ -401,7 +420,7 @@ Methods defined here:\
 :   `loads a timeseries from a SQLITE3 database Reads a time series from the database# conn - SQLITE3 connection tsid - string LOC_PARAM start_time - datetime end_time - datetime`
 
 **loadTSV**(self, path)
-:   `Reads a timeseries from a tsv. Hash (#) can be used as comments Format <Datetime>        <value> <quality> if quality is not present,  will defualt to 0 This method mutates the object, and also returns a pointer to self.`
+:   `Reads a timeseries from a tsv file. Hash (#) can be used as comments Format <Datetime>        <value> <quality> if quality is not present,  will defualt to 0 This method mutates the object, and also returns a pointer to self.`
 
 **maxmin**(self, interval, cmp)
 :   `returns a max or a min based for a given interval of type datetime returns a timeseries object`
@@ -464,6 +483,9 @@ Methods defined here:\
 
 **timeshift**(self, tdelta)
 :   `Shifts each timestamp a given time interval tdelta: timedelta to shift returns a timeseries object`
+
+**toBinary**(self)
+:   `Outputs the timeseries to a binary bytearray`
 
 **toDict**(self)
 :   `Turns self.data into a dictionary for efficiency purposes`

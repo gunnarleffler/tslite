@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.6.1
-27 Sep 2017
+v1.6.2
+17 Oct 2017
 Author: Gunnar Leffler
 '''
 
@@ -148,12 +148,18 @@ class timeseries:
     f.close()
 
   def loadTSV(self, path):
-    '''Reads a timeseries from a tsv. Hash (#) can be used as comments
+    '''Reads a timeseries from a tsv file. Hash (#) can be used as comments
        Format <Datetime>\t<value>\t<quality>
        if quality is not present,  will defualt to 0
        This method mutates the object, and also returns a pointer to self.
     '''
     lines = (line.rstrip("\n") for line in open(path, "r"))
+    return self.fromTSV(lines)
+
+  def fromTSV (self, lines):
+    '''reads a timeseries from a TSV string 
+       This method mutates the object, and also returns a pointer to self.
+    '''
     count = 0
     for s in lines:
       count += 1
