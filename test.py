@@ -90,4 +90,4 @@ result ("round", t1.round(2) == probe);
 probe=tslite.timeseries().loadTSV("test/truncate.tsv")
 result ("truncate", t1.truncate(2) == probe);
 
-
+#print t1.snap("1d","1h"), t1.snap("1d","1h").fillMissing("1d",-901, endtime = datetime.datetime(2014, 2, 9, 0, 0))
