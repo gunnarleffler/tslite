@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.6.2 17 Oct 2017 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.6.4 12 Feb 2018 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -164,6 +164,9 @@ Methods defined here:\
 **div**(self, operand)
 :   `divides an self by an operand timeseries or constant`
 
+**fillMissing**(self, interval, value, starttime=None, endtime=None)
+:   `fills values in a timeseries on a specified interval if they are not present. Useful for marking missing values in timeseries returns a timeseries object`
+
 **filldown**(self, interval, starttime=None, offset=None, \_endtime=None)
 :   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found if a timezone offset is passed, it will fill to the offset returns a timeseries object`
 
@@ -175,6 +178,8 @@ Methods defined here:\
 
 **findValue**(self, timestamp)
 :   `returns a value at a given timestamp returns None type if not found`
+
+**firstdifference**(self)
 
 **fromBinary**(self, buf)
 :   `Reads the timeseries from a binary buffer`
@@ -237,6 +242,8 @@ Methods defined here:\
 
 **operation**(self, op, operand)
 :   `Performs an operation on self op: lambda function to perform eg lambda x,y: x+y operand: could be a timeseries or a float returns a timeseries object`
+
+**parseTimedelta**(self, input)
 
 **percent**(self, denom)
 :   `Calculates the percentage of two timeseries numerator : self denominator : denom returns a timeseries object of percentages`
@@ -368,6 +375,9 @@ Methods defined here:\
 **div**(self, operand)
 :   `divides an self by an operand timeseries or constant`
 
+**fillMissing**(self, interval, value, starttime=None, endtime=None)
+:   `fills values in a timeseries on a specified interval if they are not present. Useful for marking missing values in timeseries returns a timeseries object`
+
 **filldown**(self, interval, starttime=None, offset=None, \_endtime=None)
 :   `fills timeslices in timeseries from the previous value until a new value is detected if start time is specified, It will fill with zeroes on the interval until a value is found if a timezone offset is passed, it will fill to the offset returns a timeseries object`
 
@@ -379,6 +389,8 @@ Methods defined here:\
 
 **findValue**(self, timestamp)
 :   `returns a value at a given timestamp returns None type if not found`
+
+**firstdifference**(self)
 
 **fromBinary**(self, buf)
 :   `Reads the timeseries from a binary buffer`
@@ -441,6 +453,8 @@ Methods defined here:\
 
 **operation**(self, op, operand)
 :   `Performs an operation on self op: lambda function to perform eg lambda x,y: x+y operand: could be a timeseries or a float returns a timeseries object`
+
+**parseTimedelta**(self, input)
 
 **percent**(self, denom)
 :   `Calculates the percentage of two timeseries numerator : self denominator : denom returns a timeseries object of percentages`

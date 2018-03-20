@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.6.4
-12 Feb 2018
+v1.6.5
+20 Mar 2018
 Author: Gunnar Leffler
 '''
 
@@ -605,7 +605,7 @@ class timeseries:
     '''returns a timeseries betweeen the specified start and end datetimes'''
     output = timeseries()
     if self.data == []:
-      return output()
+      return output
     if 1 == 1:
       pos = self.findClosestIndex(starttime)
       a = pos - 2  #subtract a few to be sure
@@ -765,6 +765,9 @@ class timeseries:
     except Exception, e:
       self.status = str(e)
     return output.timeshift(interval * -1)
+
+  def firstdifference(self):
+    return self.simpledelta()
 
   def simpledelta(self):
     '''calculates the delta between successive, results are in the same units as the time series

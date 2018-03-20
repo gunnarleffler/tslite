@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.6.2
-17 Oct 2017
+v1.6.4
+12 Feb 2018
 Author: Gunnar Leffler
 '''
 
@@ -178,7 +178,7 @@ class timeseries:
                 float(tokens[1]),
                 quality=float(tokens[2]))
         except:
-          self.status = "Error Parsing %s on line %u" % (path, count)
+          self.status = "Error Parsing line %u" % (count)
     return self
 
   def saveBinary(self, path):
@@ -605,7 +605,7 @@ class timeseries:
     '''returns a timeseries betweeen the specified start and end datetimes'''
     output = timeseries()
     if self.data == []:
-      return output()
+      return output
     if 1 == 1:
       pos = self.findClosestIndex(starttime)
       a = pos - 2  #subtract a few to be sure
@@ -765,6 +765,9 @@ class timeseries:
     except Exception as e:
       self.status = str(e)
     return output.timeshift(interval * -1)
+
+  def firstdifference(self):
+    return self.simpledelta()
 
   def simpledelta(self):
     '''calculates the delta between successive, results are in the same units as the time series
@@ -1120,6 +1123,40 @@ class timeseries:
       return timeseries()
     return ts
 
+  def fillMissing(self, interval, value, starttime=None, endtime=None):
+    '''fills values in a timeseries on a specified interval if they are not present.
+       Useful for marking missing values in timeseries
+       returns a timeseries object
+    '''
+    interval = self.TD(interval)
+    ts = timeseries()
+    if self.data == [] and (starttime == None or endtime == None):
+      return ts
+    if starttime == None:
+      t = self.data[0][0]
+    else:
+      t = starttime
+    if endtime == None:
+      endtime= self.data[-1][0]
+    try:
+      i = 0
+      while t < endtime:
+        idx = self.findIndex(t)
+        if idx == -1:
+          ts.insert(t, value)
+        t += interval
+        try:
+          while self.data[i][0] <= t:
+            ts.insert (self.data[i][0],self.data[i][1],quality=self.data[i][2])
+            i += 1
+        except:
+          pass
+    except Exception as e:
+      self.status = str(e)
+      return timeseries()
+    return ts
+
+
   def timeshift(self, tdelta):
     ''' Shifts each timestamp a given time interval
         tdelta: timedelta to shift
@@ -1253,6 +1290,10 @@ class timeseries:
     except:
       self.status = "Could not parse" + input + " into a time interval"
     return output
+
+  def parseTimedelta (self, input):
+    return self.TD(input)
+
 
 
 class rdb:
