@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.6.4 12 Feb 2018 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.6.5 20 Mar 2018 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -302,6 +302,9 @@ Methods defined here:\
 **toJSON**(self, timefmt='%m/%d/%Y %k:%M:%S')
 :   `returns self as a JSON object`
 
+**toPlot**(self)
+:   `Format timeseries for plotting by returning: x: Timestamps y: Values`
+
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`
 
@@ -512,6 +515,9 @@ Methods defined here:\
 
 **toJSON**(self, timefmt='%m/%d/%Y %k:%M:%S')
 :   `returns self as a JSON object`
+
+**toPlot**(self)
+:   `Format timeseries for plotting by returning: x: Timestamps y: Values`
 
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`

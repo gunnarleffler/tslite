@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.6.5
-20 Mar 2018
+v1.7.0
+24 Apr 2018
 Author: Gunnar Leffler
 '''
 
@@ -114,7 +114,7 @@ class timeseries:
       return [None, None, None]
     return self.data[idx]
 
-  def __len__ (self):
+  def __len__(self):
     return (len(self.data))
 
   def __eq__(self, other, precision=6):
@@ -141,6 +141,17 @@ class timeseries:
       output[self.data[i][0]] = i
     return output
 
+  def toPlot(self):
+    '''Format timeseries for plotting by returning:
+       x: Timestamps
+       y: Values
+    '''
+    x, y = [], []
+    for i in xrange(len(self.data)):
+      x.append(self.data[i][0])
+      y.append(self.data[i][1])
+    return x, y
+
   def saveTSV(self, path):
     '''Outputs the timeseries to a tab separated file'''
     f = open(path, "w")
@@ -156,7 +167,7 @@ class timeseries:
     lines = (line.rstrip("\n") for line in open(path, "r"))
     return self.fromTSV(lines)
 
-  def fromTSV (self, lines):
+  def fromTSV(self, lines):
     '''reads a timeseries from a TSV string 
        This method mutates the object, and also returns a pointer to self.
     '''
@@ -191,15 +202,15 @@ class timeseries:
     '''Outputs the timeseries to a binary bytearray'''
     o = bytearray()
     for line in self.data:
-      a,b,c = (int(time.mktime(line[0].timetuple())), line[1], line[2])
-      o.extend(struct.pack("iff",a,b,c))
+      a, b, c = (int(time.mktime(line[0].timetuple())), line[1], line[2])
+      o.extend(struct.pack("iff", a, b, c))
     return o
 
   def loadBinary(self, path):
     '''Reads the timeseries from a binary file and inserts values into self'''
     buf = bytearray(os.path.getsize(path))
     with open(path, "rb") as f:
-      f.readinto(buf) 
+      f.readinto(buf)
       self.fromBinary(buf)
     f.close()
     return self
@@ -211,8 +222,8 @@ class timeseries:
     if buflen >= size:
       i = 0
       while i < buflen:
-        d = struct.unpack("iff", buf[i:i+size])
-        self.insert(datetime.datetime.fromtimestamp(d[0]), d[1],quality=d[2])
+        d = struct.unpack("iff", buf[i:i + size])
+        self.insert(datetime.datetime.fromtimestamp(d[0]), d[1], quality=d[2])
         i += size
     return self
 
@@ -1137,7 +1148,7 @@ class timeseries:
     else:
       t = starttime
     if endtime == None:
-      endtime= self.data[-1][0]
+      endtime = self.data[-1][0]
     try:
       i = 0
       while t < endtime:
@@ -1147,7 +1158,7 @@ class timeseries:
         t += interval
         try:
           while self.data[i][0] <= t:
-            ts.insert (self.data[i][0],self.data[i][1],quality=self.data[i][2])
+            ts.insert(self.data[i][0], self.data[i][1], quality=self.data[i][2])
             i += 1
         except:
           pass
@@ -1155,7 +1166,6 @@ class timeseries:
       self.status = str(e)
       return timeseries()
     return ts
-
 
   def timeshift(self, tdelta):
     ''' Shifts each timestamp a given time interval
@@ -1291,9 +1301,8 @@ class timeseries:
       self.status = "Could not parse" + input + " into a time interval"
     return output
 
-  def parseTimedelta (self, input):
+  def parseTimedelta(self, input):
     return self.TD(input)
-
 
 
 class rdb:

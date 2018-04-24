@@ -136,3 +136,11 @@ t = tslite.timeseries().loadSQLITE3(conn, "test").firstdifference()
 #t.saveSQLITE3(conn,"firstdifference", replace_table = True)
 probe = tslite.timeseries().loadSQLITE3(conn, "firstdifference")
 result("first difference (simpledelta)", t == probe)
+
+#To Plot
+#----------------------------------------------------------------
+x, y = t.toPlot()
+t = tslite.timeseries()
+for i in range(len(x)):
+  t.insert(x[i], y[i])
+result("toPlot", t == probe)
