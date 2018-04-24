@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.6.5 20 Mar 2018 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.7.0 24 Apr 2018 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -257,6 +257,9 @@ Methods defined here:\
 **round**(self, precision)
 :   `Rounds values in timeseries to a given number of decimal places`
 
+**safeinsert**(self, datestamp, value, quality=0)
+:   `takes raw input and attempts to make it work`
+
 **saveBinary**(self, path)
 :   `Outputs the timeseries to a binary file`
 
@@ -470,6 +473,9 @@ Methods defined here:\
 
 **round**(self, precision)
 :   `Rounds values in timeseries to a given number of decimal places`
+
+**safeinsert**(self, datestamp, value, quality=0)
+:   `takes raw input and attempts to make it work`
 
 **saveBinary**(self, path)
 :   `Outputs the timeseries to a binary file`

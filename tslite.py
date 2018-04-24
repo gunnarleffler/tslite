@@ -88,7 +88,7 @@ class timeseries:
       for row in data:
         if len(row) > 2:
           if row[1] != None:
-            self.insert(row[0], row[1], quality=row[2])
+            self.safeinsert(row[0], row[1], quality=row[2])
 
   #========================================================================
   # IO and data manipulation methods
@@ -179,15 +179,9 @@ class timeseries:
         tokens = s.split("\t")
         try:
           if len(tokens) == 2:
-            self.insert(
-                dateparser.parse(
-                    tokens[0], fuzzy=True), float(tokens[1]))
+            self.safeinsert(tokens[0], float(tokens[1]))
           elif len(tokens) > 2:
-            self.insert(
-                dateparser.parse(
-                    tokens[0], fuzzy=True),
-                float(tokens[1]),
-                quality=float(tokens[2]))
+            self.safeinsert(tokens[0], tokens[1], quality=tokens[2])
         except:
           self.status = "Error Parsing line %u" % (count)
     return self
@@ -354,6 +348,12 @@ class timeseries:
         imax = imid - 1
         #change max index to search lower subarray
     return imid  # Key not found
+
+  def safeinsert(self, datestamp, value, quality=0):
+    '''takes raw input and attempts to make it work'''
+    if isinstance(datestamp, basestring):
+      datestamp = dateparser.parse(datestamp, fuzzy=True)
+    self.insert (datestamp, float(value), quality=float(quality))
 
   def insert(self, datestamp, value, quality=0):
     '''Inserts a timestamp, value and quality into the timseries.
