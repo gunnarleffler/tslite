@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.7.0 24 Apr 2018 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.7.2 30 Apr 2018 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -290,6 +290,8 @@ Methods defined here:\
 **timeshift**(self, tdelta)
 :   `Shifts each timestamp a given time interval tdelta: timedelta to shift returns a timeseries object`
 
+**timestamps**(self)
+
 **toBinary**(self)
 :   `Outputs the timeseries to a binary bytearray`
 
@@ -306,13 +308,15 @@ Methods defined here:\
 :   `returns self as a JSON object`
 
 **toPlot**(self)
-:   `Format timeseries for plotting by returning: x: Timestamps y: Values`
+:   `Format timeseries for plotting by returning: x: Timestamps y: Values Matplotlib Example: plt.plot(*timeseries.toPlot())`
 
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`
 
 **truncate**(self, precision)
 :   `Truncates values in timeseries to a given number of decimal places`
+
+**values**(self)
 
 **variance**(self)
 :   `returns the variance of the timeseries as a timeslice`
@@ -507,6 +511,8 @@ Methods defined here:\
 **timeshift**(self, tdelta)
 :   `Shifts each timestamp a given time interval tdelta: timedelta to shift returns a timeseries object`
 
+**timestamps**(self)
+
 **toBinary**(self)
 :   `Outputs the timeseries to a binary bytearray`
 
@@ -523,13 +529,15 @@ Methods defined here:\
 :   `returns self as a JSON object`
 
 **toPlot**(self)
-:   `Format timeseries for plotting by returning: x: Timestamps y: Values`
+:   `Format timeseries for plotting by returning: x: Timestamps y: Values Matplotlib Example: plt.plot(*timeseries.toPlot())`
 
 **trendline**(self)
 :   `trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice`
 
 **truncate**(self, precision)
 :   `Truncates values in timeseries to a given number of decimal places`
+
+**values**(self)
 
 **variance**(self)
 :   `returns the variance of the timeseries as a timeslice`

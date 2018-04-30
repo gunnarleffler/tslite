@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.7.0
-24 Apr 2018
+v1.7.2
+30 Apr 2018
 Author: Gunnar Leffler
 '''
 
@@ -141,16 +141,26 @@ class timeseries:
       output[self.data[i][0]] = i
     return output
 
+
+  def timestamps(self):
+    output = []
+    for i in range(len(self.data)):
+      output.append(self.data[i][0])
+    return output
+
+  def values(self):
+    output = []
+    for i in range(len(self.data)):
+      output.append(self.data[i][1])
+    return output
+
   def toPlot(self):
     '''Format timeseries for plotting by returning:
        x: Timestamps
        y: Values
+       Matplotlib Example: plt.plot(*timeseries.toPlot())
     '''
-    x, y = [], []
-    for i in range(len(self.data)):
-      x.append(self.data[i][0])
-      y.append(self.data[i][1])
-    return x, y
+    return self.timestamps(), list(self.values())
 
   def saveTSV(self, path):
     '''Outputs the timeseries to a tab separated file'''
