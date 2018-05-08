@@ -8,7 +8,7 @@
   slite.py)
   ------------------------------------ ------------------------------------
 
-`tslite - Light and portable time series library v1.7.2 30 Apr 2018 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.8.0 7 May 2018 Author: Gunnar Leffler`
 
  \
  **Modules**
@@ -58,10 +58,17 @@ Methods defined here:\
 **\_\_init\_\_**(self, path)
 :   `#construtor rewrites a path to a RDB file`
 
+**\_\_str\_\_**(self)
+
 **interpolateValue**(self, x0, y0, x1, y1, x)
 :   `#interpolate values #This may be changed to a higher order interpolation in the future`
 
 **loadRDB**(self, path)
+
+**makeRating**(self, indepTS, depTS, precision=2, factor=1)
+:   `Creates a rating table based on two timeseries precision is for how many decimal places to consider factor to adjust dependent variable (kcfs->cfs, fudge factor, etc)`
+
+**parseRDB**(self, stream)
 
 **rate**(self, indep)
 :   `Rate a single value based on linear interpolation.`
@@ -74,10 +81,12 @@ Methods defined here:\
 **rateTS2** = [reverseRateTS](#rdb-reverseRateTS)(self, ts)
 
 **reverseRate**(self, indep)
-:   `Reverse rate a single value based on linear interpolation`
+:   `Reverse rate a single value based on linear interpolation This switches the domain and range of the RDB and rates it.`
 
 **reverseRateTS**(self, ts)
 :   `Generates a new time series with reverse-rated values from another`
+
+**saveRDB**(self, path)
 
  \
  class **tablegrid**

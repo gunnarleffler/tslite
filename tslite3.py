@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.7.2
-30 Apr 2018
+v1.8.0
+7 May 2018
 Author: Gunnar Leffler
 '''
 
@@ -140,7 +140,6 @@ class timeseries:
     for i in range(len(self.data)):
       output[self.data[i][0]] = i
     return output
-
 
   def timestamps(self):
     output = []
@@ -363,7 +362,7 @@ class timeseries:
     '''takes raw input and attempts to make it work'''
     if isinstance(datestamp, str):
       datestamp = dateparser.parse(datestamp, fuzzy=True)
-    self.insert (datestamp, float(value), quality=float(quality))
+    self.insert(datestamp, float(value), quality=float(quality))
 
   def insert(self, datestamp, value, quality=0):
     '''Inserts a timestamp, value and quality into the timseries.
@@ -1321,19 +1320,35 @@ class rdb:
     #initialize with Default Configuration
     self.status = "OK"
     #format = INDEP   SHIFT   DEP     STOR
-    self.data = self.loadRDB(path)
+    self.data = []
+    if path:
+      self.loadRDB(path)
+
+  def __str__(self):
+    output = "INDEP	SHIFT	DEP	STOR\n16N	16N	16N	1S\n"
+    for line in self.data:
+      output += "{}\n".format("\t".join(line))
+    return output
 
   def loadRDB(self, path):
-    output = []
     self.path = path
     try:
-      input = open(path, "r")
-      for line in input:
+      self.data = self.parseRDB(open(path, "r"))
+    except Exception as e:
+      self.status = "\n{}".format(str(e))
+
+  def parseRDB(self, stream):
+    output = []
+    try:
+      for line in stream:
         if (not "#" in line) and (len(line) > 1):
-          output.append(line.split("\t"))
+          output.append(line.strip().split("\t"))
     except Exception as e:
       self.status = "\n%s" % str(e)
     return output[2:]
+
+  def saveRDB(self, path):
+    open(path, "w").write(str(self))
 
   #interpolate values
   #This may be changed to a higher order interpolation in the future
@@ -1355,9 +1370,10 @@ class rdb:
         float(data[index][2]),
         float(data[index + 1][0]), float(data[index + 1][2]), indep)
 
-  #This switches the domain and range of the RDB and rates it.
   def reverseRate(self, indep):
-    """ Reverse rate a single value based on linear interpolation """
+    """ Reverse rate a single value based on linear interpolation
+        This switches the domain and range of the RDB and rates it. 
+    """
     data = self.data
     index = len(data) - 2
     for i in range(len(data) - 1):
@@ -1370,6 +1386,27 @@ class rdb:
         float(data[index + 1][2]), float(data[index + 1][0]), indep)
 
   rate2 = reverseRate  ## backwards compatibility
+
+  def makeRating(self, indepTS, depTS, precision=2, factor=1):
+    """ Creates a rating table based on two timeseries
+        precision is for how many decimal places to consider
+        factor to adjust dependent variable (kcfs->cfs, fudge factor, etc)"""
+    self.data = []
+    fmt = '.' + str(precision) + 'f'
+    ratingMap = {}
+    for t in indepTS.timestamps():
+      indep = indepTS.findValue(t)
+      dep = depTS.findValue(t)
+      if dep != None and indep != None:
+        key = float(format(indep, fmt))
+        if key in ratingMap:
+          ratingMap[key].append(dep * factor)
+        else:
+          ratingMap[key] = [dep * factor]
+    keys = sorted(ratingMap.keys())
+    for key in keys:
+      indep = sum(ratingMap[key]) / float(len(ratingMap[key]))
+      self.data.append([format(key, fmt), "0.00", format(indep, fmt), ""])
 
   def rateTS(self, ts):
     """ Generates a new time series with rated values from another """
