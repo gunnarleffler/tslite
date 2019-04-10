@@ -4,7 +4,7 @@
   **tslite**   
   ------------ ---------------------------------------------------------------------------------------
 
-`tslite - Light and portable time series library v1.8.0 7 May 2018 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.8.1 10 Apr 2019 Author: Gunnar Leffler`
 
  \
 **Modules**

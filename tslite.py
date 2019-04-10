@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.8.0
-7 May 2018
+v1.8.1
+10 Apr 2019
 Author: Gunnar Leffler
 '''
 
@@ -332,7 +332,7 @@ class timeseries:
     imin = 0
     imax = len(self.data) - 1
     while (imax >= imin):
-      imid = imin + ((imax - imin) / 2)
+      imid = imin + ((imax - imin) // 2)
       if (self.data[imid][0] == key):
         return imid
       elif (self.data[imid][0] < key):
@@ -348,7 +348,7 @@ class timeseries:
     imin = 0
     imax = len(self.data) - 1
     while (imax >= imin):
-      imid = imin + ((imax - imin) / 2)
+      imid = imin + ((imax - imin) // 2)
       if (self.data[imid][0] == key):
         return imid
       elif (self.data[imid][0] < key):
