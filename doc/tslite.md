@@ -4,7 +4,7 @@
   **tslite**   
   ------------ ---------------------------------------------------------------------------------------
 
-`tslite - Light and portable time series library v1.8.1 10 Apr 2019 Author: Gunnar Leffler`
+`tslite - Light and portable time series library v1.8.2 20 May 2019 Author: Gunnar Leffler`
 
  \
 **Modules**
@@ -334,6 +334,11 @@ Methods defined here:\
 
 [**round**]()(self, precision)
 :   `Rounds values in timeseries to a given number of decimal places`
+
+<!-- -->
+
+[**runningTotal**]()(self, override\_startTime=None)
+:   `Creates a timeseries containing a running total (partial sum) returns a timeseries object`
 
 <!-- -->
 
@@ -671,6 +676,11 @@ Methods defined here:\
 
 [**round**]()(self, precision)
 :   `Rounds values in timeseries to a given number of decimal places`
+
+<!-- -->
+
+[**runningTotal**]()(self, override\_startTime=None)
+:   `Creates a timeseries containing a running total (partial sum) returns a timeseries object`
 
 <!-- -->
 

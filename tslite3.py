@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.8.1
-10 Apr 2019
+v1.8.2
+20 May 2019
 Author: Gunnar Leffler
 '''
 
@@ -708,6 +708,16 @@ class timeseries:
     except Exception as e:
       self.status = str(e)
     return timeseries(_data)
+
+  def runningTotal(self, override_startTime=None):
+    '''Creates a timeseries containing a running total (partial sum)
+     returns a timeseries object'''
+    output = timeseries()
+    sum = 0
+    for row in self.data:
+      sum += row[1]
+      output.insert (row[0],sum,row[2])
+    return output
 
   def accumulate(self, interval, override_startTime=None):
     '''accumulates timeseries based on a given interval of type timedelta

@@ -144,3 +144,10 @@ t = tslite.timeseries()
 for i in range(len(x)):
   t.insert(x[i], y[i])
 result("toPlot", t == probe)
+
+#runningTotal    
+#----------------------------------------------------------------
+t1 = tslite.timeseries().loadTSV("test/inflow.tsv")
+probe = tslite.timeseries().loadTSV("test/runningTotal.tsv")
+result("runningTotal", t1.runningTotal() == probe)
+
