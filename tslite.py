@@ -129,7 +129,7 @@ class timeseries:
       return True
     if len(self.data) != len(other.data):
       return False
-    for i in xrange(len(self.data)):
+    for i in range(len(self.data)):
       if format(self.data[i][1], fmt) != format(other.data[i][1], fmt):
         return False
     return True
@@ -137,19 +137,19 @@ class timeseries:
   def toDict(self):
     '''Turns self.data into a dictionary for efficiency purposes'''
     output = {}
-    for i in xrange(len(self.data)):
+    for i in range(len(self.data)):
       output[self.data[i][0]] = i
     return output
 
   def timestamps(self):
     output = []
-    for i in xrange(len(self.data)):
+    for i in range(len(self.data)):
       output.append(self.data[i][0])
     return output
 
   def values(self):
     output = []
-    for i in xrange(len(self.data)):
+    for i in range(len(self.data)):
       output.append(self.data[i][1])
     return output
 
@@ -159,7 +159,7 @@ class timeseries:
        y: Values
        Matplotlib Example: plt.plot(*timeseries.toPlot())
     '''
-    return self.timestamps(), self.values()
+    return self.timestamps(), list(self.values())
 
   def saveTSV(self, path):
     '''Outputs the timeseries to a tab separated file'''
@@ -245,7 +245,7 @@ class timeseries:
       if not dbconn:
         self.status = "\nCould not connect to %s\n" % dbname
         self.status += "\n%s"
-    except Exception, e:
+    except Exception as e:
       self.status = "\nCould not connect to %s\n" % dbname
       self.status += "\n%s" + str(e)
     return dbconn
@@ -277,7 +277,7 @@ class timeseries:
       rows = cur.fetchall()
       for d in rows:
         ts.insert(datetime.datetime.fromtimestamp(d[0]), d[1], quality=d[2])
-    except Exception, e:
+    except Exception as e:
       self.status = "\nCould not read %s\n" % tsid
       self.status += "\n%s" + str(e)
     cur.close()
@@ -306,7 +306,7 @@ class timeseries:
         cur.execute(sqltxt)
       conn.commit()
       cur.close()
-    except Exception, e:
+    except Exception as e:
       self.status = "\nCould not store " + tsid
       self.status += "\n%s" % str(e)
 
@@ -360,7 +360,7 @@ class timeseries:
 
   def safeinsert(self, datestamp, value, quality=0):
     '''takes raw input and attempts to make it work'''
-    if isinstance(datestamp, basestring):
+    if isinstance(datestamp, str):
       datestamp = dateparser.parse(datestamp, fuzzy=True)
     self.insert(datestamp, float(value), quality=float(quality))
 
@@ -478,18 +478,18 @@ class timeseries:
     interval = self.TD(interval)
     _data = []
     try:
-      for i in xrange(0, len(self.data) - 1):
+      for i in range(0, len(self.data) - 1):
         startTime = self.data[i][0]
         deltaT = (self.data[i + 1][0] - startTime)
         steps = int(deltaT.total_seconds() / interval.total_seconds())
         quality = self.data[i][2]
-        for j in xrange(0, steps):
+        for j in range(0, steps):
           value = self.interpolateValue(0, self.data[i][1],
                                         deltaT.total_seconds(),
                                         self.data[i + 1][1],
                                         j * interval.total_seconds())
           _data.append([startTime + (interval * j), value, quality])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -519,7 +519,7 @@ class timeseries:
             break
         if n != 0:
           _data.append([endTime, sum / n, quality])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -687,7 +687,7 @@ class timeseries:
         sum = 0
         t = self.data[i][0]
         n = 0
-        for WY in xrange(startWY, endWY + 1):
+        for WY in range(startWY, endWY + 1):
           try:
             t2 = datetime.datetime(
                 year=fromWY(WY, t.month),
@@ -705,7 +705,7 @@ class timeseries:
         if n != 0:
           _data.append([t, sum / n, quality])
         i += 1
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -747,7 +747,7 @@ class timeseries:
             break
         if n != 0:
           _data.append([endTime, sum, quality])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -792,7 +792,7 @@ class timeseries:
         total += slice[1]
         output.insert(slice[0], total, quality=slice[2])
         #print "%s\t %f\t %f" %(str(slice[0]),slice[1],total)
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return output.timeshift(interval * -1)
 
@@ -806,10 +806,10 @@ class timeseries:
     if len(self.data) < 2:
       return output
     try:
-      for i in xrange(1, len(self.data)):
+      for i in range(1, len(self.data)):
         d = self.data[i][1] - self.data[i - 1][1]
         output.insert(self.data[i][0], d, quality=self.data[i][2])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return output
 
@@ -838,7 +838,7 @@ class timeseries:
           if i >= count:
             break
         _data.append([endTime, probe, quality])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -866,11 +866,11 @@ class timeseries:
 
     _data = self.data
 
-    for x in xrange(0, len(_data) - 1):
+    for x in range(0, len(_data) - 1):
       yy = _data[x][1]
       y.append(yy)
 
-    order_range = range(order + 1)
+    order_range = list(range(order + 1))
     half_window = (window_size - 1) // 2
 
     # precomute coefficients
@@ -975,7 +975,7 @@ class timeseries:
         if n != 0:
           _data.append([endTime, sum / n, quality])
         i += 1
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -1004,7 +1004,7 @@ class timeseries:
         if n != 0:
           _data.append([endTime, sum / n, quality])
         i -= 1
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -1039,7 +1039,7 @@ class timeseries:
         if n != 0:
           _data.append([self.data[i][0], sum / n, quality])
         i += 1
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
     return timeseries(_data)
 
@@ -1061,7 +1061,7 @@ class timeseries:
         if key in denom_data:
           _data.append(
               [line[0], 100 * float(line[1] / denom_data[key][1]), line[2]])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return timeseries(_data)
@@ -1098,7 +1098,7 @@ class timeseries:
         if self.data[a][0] >= t - buffer and self.data[a][0] <= t + buffer:
           output.data.append([t, self.data[a][1], self.data[a][2]])
         t += interval
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return output
@@ -1148,7 +1148,7 @@ class timeseries:
             break
         ts.insert(t, val, quality=qual)
         t += interval
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return ts
@@ -1181,7 +1181,7 @@ class timeseries:
             i += 1
         except:
           pass
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return ts
@@ -1196,7 +1196,7 @@ class timeseries:
     try:
       for line in self.data:
         _data.append([line[0] + tdelta, line[1], line[2]])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return timeseries(_data)
@@ -1235,7 +1235,7 @@ class timeseries:
           val = operand.findValue(line[0])
           if val != None:
             _data.append([line[0], op(line[1], val), line[2]])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return timeseries(_data)
@@ -1263,7 +1263,7 @@ class timeseries:
           if val != None:
             if op(line[1], val):
               _data.append(line)
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return timeseries(_data)
@@ -1281,7 +1281,7 @@ class timeseries:
         val = self.findValue(line[0])
         if val != None:
           output.insert(line[0], line[1], quality=line[2])
-    except Exception, e:
+    except Exception as e:
       self.status = str(e)
       return timeseries()
     return output
@@ -1292,7 +1292,7 @@ class timeseries:
     '''TD takes a relative time and turns it into a timedelta
     input format: 1w7d6h9m
     '''
-    if not isinstance(input, basestring):
+    if not isinstance(input, str):
       return input
     output = datetime.timedelta(seconds=0)
     t = ""
@@ -1344,7 +1344,7 @@ class rdb:
     self.path = path
     try:
       self.data = self.parseRDB(open(path, "r"))
-    except Exception, e:
+    except Exception as e:
       self.status = "\n{}".format(str(e))
 
   def parseRDB(self, stream):
@@ -1353,7 +1353,7 @@ class rdb:
       for line in stream:
         if (not "#" in line) and (len(line) > 1):
           output.append(line.strip().split("\t"))
-    except Exception, e:
+    except Exception as e:
       self.status = "\n%s" % str(e)
     return output[2:]
 
@@ -1371,7 +1371,7 @@ class rdb:
     """ Rate a single value based on linear interpolation. """
     data = self.data
     index = len(data) - 2
-    for i in xrange(len(data) - 1):
+    for i in range(len(data) - 1):
       if indep < float(data[i + 1][0]):
         index = i
         break
@@ -1386,7 +1386,7 @@ class rdb:
     """
     data = self.data
     index = len(data) - 2
-    for i in xrange(len(data) - 1):
+    for i in range(len(data) - 1):
       if indep < float(data[i + 1][2]):
         index = i
         break
@@ -1459,7 +1459,7 @@ class tablegrid:
             row2.append(
                 float(n))  #Iterate and convert entries to floating point number
           output.append(row2)
-    except Exception, e:
+    except Exception as e:
       self.status = "\n%s" % str(e)
     return output
 

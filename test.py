@@ -6,9 +6,9 @@ import dateutil.parser
 
 def result(text, cond):
   if cond == True:
-    print " %s ... %sOK%s" % (text, bcolors.OKGREEN, bcolors.ENDC)
+    print(" %s ... %sOK%s" % (text, bcolors.OKGREEN, bcolors.ENDC))
   else:
-    print " %s ... %sFAIL!%s" % (text, bcolors.FAIL, bcolors.ENDC)
+    print(" %s ... %sFAIL!%s" % (text, bcolors.FAIL, bcolors.ENDC))
 
 
 class bcolors:
@@ -32,13 +32,13 @@ result("Load Binary Data", (len(t.data) > 0))
 t.saveBinary("test/test2.dat")
 result("Save Binary Data", t.status == "OK")
 
-print " compressing timeseries of length %d..." % (len(t))
+print(" compressing timeseries of length %d..." % (len(t)))
 b = t.toBinary()
-z = zlib.compress(buffer(b), 9)
-print " %d bytes, %d bytes compressed" % (len(b), len(z))
+z = zlib.compress(memoryview(b), 9)
+print(" %d bytes, %d bytes compressed" % (len(b), len(z)))
 b = zlib.decompress(z)
 probe = tslite.timeseries().fromBinary(b)
-print " decompressed %d lines" % (len(probe))
+print(" decompressed %d lines" % (len(probe)))
 result("Binary compression in memory", t == probe)
 
 #SQLITE3 IO
@@ -52,39 +52,43 @@ result("Save to SQLITE3 database", t.status == "OK")
 probe = tslite.timeseries().loadSQLITE3(conn, "saveSQLITE3")
 result("Load from SQLITE3 database", t == probe)
 
-#Snap     
+#Snap
 #----------------------------------------------------------------
 t2 = t.snap("1d", "6h")
 probe = tslite.timeseries().loadSQLITE3(conn, "snap")
 result("snap", probe == t2)
 
-#Hardsnap 
+#Hardsnap
 #----------------------------------------------------------------
-t2 = t.snap(
-    t.TD("1d"),
-    t.TD("6h"),
-    starttime=datetime.datetime(
-        year=2014, month=1, day=5))
+t2 = t.snap(t.TD("1d"),t.TD("6h"),starttime=datetime.datetime(year=2014, month=1, day=5))
+print (datetime.datetime(year=2014, month=1, day=5))
 probe = tslite.timeseries().loadSQLITE3(conn, "hardsnap")
 result("hardsnap", probe == t2)
+print (probe)
+print (t2)
 
-#Variance 
+#Variance
 #----------------------------------------------------------------
-result("variance",
-       probe.variance() ==
-       [datetime.datetime(2014, 2, 6, 0, 0), 1393.0345078122862, 0])
+result(
+    "variance",
+    probe.variance() == [
+        datetime.datetime(2014, 2, 6, 0, 0), 1393.0345078122862, 0
+    ])
 
 #Standard deviation
 #----------------------------------------------------------------
-result("standard deviation",
-       probe.stddev() ==
-       [datetime.datetime(2014, 2, 6, 0, 0), 37.32337749738475, 0])
+result(
+    "standard deviation",
+    probe.stddev() == [
+        datetime.datetime(2014, 2, 6, 0, 0), 37.32337749738475, 0
+    ])
 
 #Linear Regression Coefficients
 #----------------------------------------------------------------
-result("linear regression coefficients",
-       t2.linreg() == (-2.7476210178105947e-05, 39016.59750278894,
-                       -0.5874889488864309))
+result(
+    "linear regression coefficients",
+    t2.linreg() == (-2.7476210178105947e-05, 39016.59750278894,
+                    -0.5874889488864309))
 
 #trendline
 #----------------------------------------------------------------
@@ -125,7 +129,7 @@ result("toJSON", t1.toJSON() == probe)
 probe = tslite.timeseries().loadTSV("test/round.tsv")
 result("round", t1.round(2) == probe)
 
-#Truncate        
+#Truncate
 #----------------------------------------------------------------
 probe = tslite.timeseries().loadTSV("test/truncate.tsv")
 result("truncate", t1.truncate(2) == probe)
@@ -145,9 +149,8 @@ for i in range(len(x)):
   t.insert(x[i], y[i])
 result("toPlot", t == probe)
 
-#runningTotal    
+#runningTotal
 #----------------------------------------------------------------
 t1 = tslite.timeseries().loadTSV("test/inflow.tsv")
 probe = tslite.timeseries().loadTSV("test/runningTotal.tsv")
 result("runningTotal", t1.runningTotal() == probe)
-
