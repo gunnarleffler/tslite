@@ -98,11 +98,10 @@ class timeseries:
     '''Equivalent to toString() in other languages
      returns a tab delineated timeseries'''
     output = ""
-    template = "%s\t%.3f\t%.2f\n"
+    template = "%s\t%.3f\n"
     for line in self.data:
       try:
-        output += template % (line[0].strftime("%d-%b-%Y %H%M"), line[1],
-                              line[2])
+        output += template % (line[0].strftime("%d-%b-%Y %H%M"), line[1])
       except:
         output += "%s\t\t\n" % line[0].strftime("%d-%b-%Y %H%M")
     return output
@@ -202,11 +201,13 @@ class timeseries:
     f.close()
 
   def toBinary(self):
-    '''Outputs the timeseries to a binary bytearray'''
+    '''Outputs the timeseries to a binary bytearray
+       Uses doubles for time and 
+    '''
     o = bytearray()
     for line in self.data:
-      a, b, c = (int(time.mktime(line[0].timetuple())), line[1], line[2])
-      o.extend(struct.pack("iff", a, b, c))
+      a, b = (time.mktime(line[0].timetuple()), line[1])
+      o.extend(struct.pack("dd", a, b))
     return o
 
   def loadBinary(self, path):
@@ -220,15 +221,37 @@ class timeseries:
 
   def fromBinary(self, buf):
     '''Reads the timeseries from a binary buffer'''
+    size = struct.calcsize("dd")
+    buflen = len(buf)
+    if buflen >= size:
+      i = 0
+      while i < buflen:
+        d = struct.unpack("dd", buf[i:i + size])
+        self.insert(datetime.datetime.fromtimestamp(d[0]), d[1])
+        i += size
+    return self
+
+  def loadBinaryV1(self, path):
+    '''Reads the timeseries from a binary file and inserts values into self'''
+    buf = bytearray(os.path.getsize(path))
+    with open(path, "rb") as f:
+      f.readinto(buf)
+      self.fromBinaryV1(buf)
+    f.close()
+    return self
+
+  def fromBinaryV1(self, buf):
+    '''Reads the timeseries from a binary buffer'''
     size = struct.calcsize("iff")
     buflen = len(buf)
     if buflen >= size:
       i = 0
       while i < buflen:
         d = struct.unpack("iff", buf[i:i + size])
-        self.insert(datetime.datetime.fromtimestamp(d[0]), d[1], quality=d[2])
+        self.insert(datetime.datetime.fromtimestamp(d[0]), d[1])
         i += size
     return self
+
 
   @requires_SQLITE3
   def SQLITE3connect(self, dbPath):
@@ -243,11 +266,9 @@ class timeseries:
     try:
       dbconn = sqlite3.connect(dbPath)
       if not dbconn:
-        self.status = "\nCould not connect to %s\n" % dbname
-        self.status += "\n%s"
+        self.status = f"\nCould not connect to {dbPath}\n"
     except Exception as e:
-      self.status = "\nCould not connect to %s\n" % dbname
-      self.status += "\n%s" + str(e)
+      self.status = f"\nCould not connect to {dbPath}\n {str (e)}"
     return dbconn
 
   @requires_SQLITE3
@@ -263,6 +284,36 @@ class timeseries:
     tsid - string LOC_PARAM
     start_time - datetime
     end_time - datetime
+    Timestamps are stored in milliseconds after the unix epoch
+    '''
+    cur = conn.cursor()
+    ts = timeseries()
+    sqltxt = "SELECT * FROM " + tsid
+    if start_time != None and end_time != None:
+      start = time.mktime(start_time.timetuple()*1000)
+      end = time.mktime(end_time.timetuple()*1000)
+      sqltxt += " WHERE timestamp >= " + str(
+          start) + " AND timestamp <= " + str(end)
+    try:
+      cur.execute(sqltxt)
+      rows = cur.fetchall()
+      for d in rows:
+        ts.insert(datetime.datetime.fromtimestamp(d[0]/1000), d[1])
+    except Exception as e:
+      self.status = "\nCould not read %s\n" % tsid
+      self.status += "\n%s" + str(e)
+    cur.close()
+    return ts
+
+  @requires_SQLITE3
+  def loadSQLITE3v1(self, conn, tsid, start_time=None, end_time=None):
+    '''loads a timeseries from a SQLITE3 database from version 1 tables
+    Reads a time series from the database#
+    conn - SQLITE3 connection
+    tsid - string LOC_PARAM
+    start_time - datetime
+    end_time - datetime
+    in v1 Timestamps are stored in seconds after the unix epoch
     '''
     cur = conn.cursor()
     ts = timeseries()
@@ -276,12 +327,13 @@ class timeseries:
       cur.execute(sqltxt)
       rows = cur.fetchall()
       for d in rows:
-        ts.insert(datetime.datetime.fromtimestamp(d[0]), d[1], quality=d[2])
+        ts.insert(datetime.datetime.fromtimestamp(d[0]), d[1])
     except Exception as e:
       self.status = "\nCould not read %s\n" % tsid
       self.status += "\n%s" + str(e)
     cur.close()
     return ts
+
 
   @requires_SQLITE3
   def saveSQLITE3(self, conn, tsid, replace_table=False):
@@ -290,20 +342,18 @@ class timeseries:
     conn - SQLITE3 connection
     tsid - string LOC_PARAM
     replace_table = False - Set to true to replace the ts in the database
+    Timestamps are stored in milliseconds after the unix epoch
     '''
     tsid = tsid.upper()
     try:
       cur = conn.cursor()
       if replace_table == True:
-        cur.execute("CREATE TABLE IF NOT EXISTS " + tsid +
-                    "(timestamp INTEGER PRIMARY KEY, val REAL, quality REAL)")
-        cur.execute("DROP TABLE " + tsid)
-      cur.execute("CREATE TABLE IF NOT EXISTS " + tsid +
-                  "(timestamp INTEGER PRIMARY KEY, val REAL, quality REAL)")
+        cur.execute("CREATE TABLE IF NOT EXISTS {}(timestamp INTEGER PRIMARY KEY, val REAL)".format(tsid))
+        cur.execute("DROP TABLE {}".format(tsid))
+      cur.execute("CREATE TABLE IF NOT EXISTS {}(timestamp INTEGER PRIMARY KEY, val REAL)".format(tsid))
       for line in self.data:
-        sqltxt = "INSERT OR REPLACE INTO " + tsid + " VALUES(%d,%f,%f)" % (
-            int(time.mktime(line[0].timetuple())), line[1], line[2])
-        cur.execute(sqltxt)
+        sqltxt = "INSERT OR REPLACE INTO {} VALUES(?, ?)".format(tsid)
+        cur.execute(sqltxt,(int(time.mktime(line[0].timetuple()) * 1000), line[1]))
       conn.commit()
       cur.close()
     except Exception as e:

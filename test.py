@@ -26,11 +26,14 @@ class bcolors:
 print("Testing tslite")
 #Binary IO
 #----------------------------------------------------------------
-t = tslite.timeseries().loadBinary("test/test.dat")
-result("Load Binary Data", (len(t.data) > 0))
+t = tslite.timeseries().loadBinaryV1("test/testv1.dat")
+result("Load v1 Binary Data", (len(t.data) > 0))
 
-t.saveBinary("test/test2.dat")
+t.saveBinary("test/test.dat")
 result("Save Binary Data", t.status == "OK")
+
+probe = tslite.timeseries().loadBinary("test/test.dat")
+result("Load Binary Data", t == probe)
 
 print(" compressing timeseries of length %d..." % (len(t)))
 b = t.toBinary()
@@ -46,8 +49,14 @@ result("Binary compression in memory", t == probe)
 conn = tslite.timeseries().SQLITE3connect("test/test.db")
 result("SQLITE3 connection", conn != None)
 
-#t.snap("6h","3h").saveSQLITE3 (conn,"testinput")
+t.saveSQLITE3 (conn,"saveSQLITE3", replace_table = True)
 result("Save to SQLITE3 database", t.status == "OK")
+
+#save a reasonable set of test data
+#t2 = t.snap(t.TD("6h"),t.TD("3h"),starttime=datetime.datetime(year=2014, month=1, day=5))
+#t2.saveSQLITE3 (conn,"test6hr", replace_table = True)
+t2 = t.snap(t.TD("1d"),t.TD("12h"),starttime=datetime.datetime(year=2014, month=1, day=5))
+t2.saveSQLITE3 (conn,"testdaily", replace_table = True)
 
 probe = tslite.timeseries().loadSQLITE3(conn, "saveSQLITE3")
 result("Load from SQLITE3 database", t == probe)
@@ -55,56 +64,52 @@ result("Load from SQLITE3 database", t == probe)
 #Snap
 #----------------------------------------------------------------
 t2 = t.snap("1d", "6h")
-probe = tslite.timeseries().loadSQLITE3(conn, "snap")
+probe = tslite.timeseries().loadSQLITE3 (conn, "snap")
 result("snap", probe == t2)
 
 #Hardsnap
 #----------------------------------------------------------------
 t2 = t.snap(t.TD("1d"),t.TD("6h"),starttime=datetime.datetime(year=2014, month=1, day=5))
-print (datetime.datetime(year=2014, month=1, day=5))
+#t2.saveSQLITE3 (conn,"hardsnap", replace_table = True)
 probe = tslite.timeseries().loadSQLITE3(conn, "hardsnap")
 result("hardsnap", probe == t2)
-print (probe)
-print (t2)
 
 #Variance
 #----------------------------------------------------------------
 result(
     "variance",
-    probe.variance() == [
-        datetime.datetime(2014, 2, 6, 0, 0), 1393.0345078122862, 0
-    ])
+    probe.variance() == [datetime.datetime(2014, 2, 6, 0, 0), 1574.489562817637, 0])
 
 #Standard deviation
 #----------------------------------------------------------------
 result(
     "standard deviation",
-    probe.stddev() == [
-        datetime.datetime(2014, 2, 6, 0, 0), 37.32337749738475, 0
-    ])
+    probe.stddev() == [datetime.datetime(2014, 2, 6, 0, 0), 39.67983824081995, 0])
 
 #Linear Regression Coefficients
 #----------------------------------------------------------------
 result(
     "linear regression coefficients",
-    t2.linreg() == (-2.7476210178105947e-05, 39016.59750278894,
-                    -0.5874889488864309))
+    probe.linreg() == (-3.2215856195371914e-05, 45607.98076509822, -0.668228372287951))
 
 #trendline
 #----------------------------------------------------------------
 probe = tslite.timeseries().loadSQLITE3(conn, "trendline")
+t2 = tslite.timeseries().loadSQLITE3 (conn, "test6hr")
 result("linear regression trendline", t2.trendline() == probe)
 
 #cull
 #----------------------------------------------------------------
-t3 = t2.cull(lambda x, y: x > y, 800.0)
+t = tslite.timeseries().loadSQLITE3 (conn, "testdaily")
+t2 = t.cull(lambda x, y: x > y, 800.0)
 probe = tslite.timeseries().loadTSV("test/cull.tsv")
-result("cull", t3.__eq__(probe, precision=2))
+result("cull below a constant (in this case 800)", t2.__eq__(probe, precision=2))
 
 #centerMovingAverage
 #----------------------------------------------------------------
 r = t2.centerMovingAverage(t.TD("5d"))
 t3 = t2.cull(lambda x, y: x > y, r)
+#t2.saveTSV("test/cull.tsv")
 probe = tslite.timeseries().loadTSV("test/TScull.tsv")
 result("TS cull", t3.__eq__(probe, precision=2))
 
