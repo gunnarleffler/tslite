@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 ''' tslite - Light and portable time series library
-v1.8.2
-20 May 2019
+v2.0.0
+22 April 2022
 Author: Gunnar Leffler
 '''
 
@@ -25,17 +25,9 @@ except:
 else:
   _SQLITE3_AVAILABLE = True
 
-try:
-  from hec.io import TimeSeriesContainer  ## TODO: write conversion functions to/from TSCs.
-except:
-  _HECLIB_AVAILABLE = False
-else:
-  _HECLIB_AVAILABLE = True
-
 
 def requires_numpy(f):
   """ Initial stab at the requires_numpy function - raises a warning """
-
   @wraps(f)
   def wrapper(*args, **kwargs):
     if _NUMPY_AVAILABLE:
@@ -48,7 +40,6 @@ def requires_numpy(f):
 
 
 def requires_SQLITE3(f):
-
   @wraps(f)
   def wrapper(*args, **kwargs):
     if _SQLITE3_AVAILABLE:
@@ -61,7 +52,6 @@ def requires_SQLITE3(f):
 
 
 def requires_heclib(f):
-
   @wraps(f)
   def wrapper(*args, **kwargs):
     if _HECLIB_AVAILABLE:
@@ -629,7 +619,8 @@ class timeseries:
     return (m, b, r)
 
   def trendline(self):
-    '''trendline performs a least squares regression on self. It returns a timeseries that contains the best fit values for each timeslice '''
+    '''trendline performs a least squares regression on self. 
+      Return a timeseries that contains the best fit values for each timeslice '''
     output = timeseries()
     coeff = self.linreg()
     m = coeff[0]
@@ -923,7 +914,7 @@ class timeseries:
     order_range = list(range(order + 1))
     half_window = (window_size - 1) // 2
 
-    # precomute coefficients
+    # precompute coefficients
     b = np.mat([[k**i for i in order_range]
                 for k in range(-half_window, half_window + 1)])
     m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
@@ -1340,7 +1331,7 @@ class timeseries:
   #eg input 7d6h9m
   def TD(self, input):
     '''TD takes a relative time and turns it into a timedelta
-    input format: 1w7d6h9m
+    input format: 1w7d6h9m16s
     '''
     if not isinstance(input, str):
       return input
@@ -1362,6 +1353,9 @@ class timeseries:
           t = ""
         elif c == "m":
           output += datetime.timedelta(minutes=float(t))
+          t = ""
+        elif c == "s":
+          output += datetime.timedelta(seconds=float(t))
           t = ""
         else:
           if c != " ":

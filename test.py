@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import datetime, sys, os, io
-import tslite, json, zlib
+import tslite, json, zlib, lzma
 import dateutil.parser
 
 
@@ -35,14 +35,32 @@ result("Save Binary Data", t.status == "OK")
 probe = tslite.timeseries().loadBinary("test/test.dat")
 result("Load Binary Data", t == probe)
 
-print(" compressing timeseries of length %d..." % (len(t)))
+print(" zlib compressing timeseries of length %d..." % (len(t)))
 b = t.toBinary()
 z = zlib.compress(memoryview(b), 9)
 print(" %d bytes, %d bytes compressed" % (len(b), len(z)))
 b = zlib.decompress(z)
 probe = tslite.timeseries().fromBinary(b)
 print(" decompressed %d lines" % (len(probe)))
-result("Binary compression in memory", t == probe)
+result("zlib Binary compression in memory", t == probe)
+
+#LZMA compression
+#https://docs.python.org/3/library/lzma.html
+print(" lzma compressing timeseries of length %d..." % (len(t)))
+b = t.toBinary()
+z = lzma.compress(b, filters = [{"id": lzma.FILTER_LZMA2, "preset": 9}])
+print(" %d bytes, %d bytes compressed" % (len(b), len(z)))
+b =  lzma.decompress(z)
+probe = tslite.timeseries().fromBinary(b)
+print(" decompressed %d lines" % (len(probe)))
+result("lzma Binary compression in memory", t == probe)
+
+with open("test/test.xz", "wb") as f:
+  f.write(z)
+
+with lzma.open("test/test.xz") as f:
+  probe = tslite.timeseries().fromBinary(f.read())
+result("lzma Binary compression on disk", t == probe)
 
 #SQLITE3 IO
 #----------------------------------------------------------------
@@ -53,10 +71,11 @@ t.saveSQLITE3 (conn,"saveSQLITE3", replace_table = True)
 result("Save to SQLITE3 database", t.status == "OK")
 
 #save a reasonable set of test data
+# 6hr and daily data
 #t2 = t.snap(t.TD("6h"),t.TD("3h"),starttime=datetime.datetime(year=2014, month=1, day=5))
 #t2.saveSQLITE3 (conn,"test6hr", replace_table = True)
-t2 = t.snap(t.TD("1d"),t.TD("12h"),starttime=datetime.datetime(year=2014, month=1, day=5))
-t2.saveSQLITE3 (conn,"testdaily", replace_table = True)
+#t2 = t.snap(t.TD("1d"),t.TD("12h"),starttime=datetime.datetime(year=2014, month=1, day=5))
+#t2.saveSQLITE3 (conn,"testdaily", replace_table = True)
 
 probe = tslite.timeseries().loadSQLITE3(conn, "saveSQLITE3")
 result("Load from SQLITE3 database", t == probe)
@@ -97,6 +116,8 @@ result(
 probe = tslite.timeseries().loadSQLITE3(conn, "trendline")
 t2 = tslite.timeseries().loadSQLITE3 (conn, "test6hr")
 result("linear regression trendline", t2.trendline() == probe)
+print (t2,probe)
+
 
 #cull
 #----------------------------------------------------------------
