@@ -1,27 +1,42 @@
+
+```
+ _____ _____ _ _ _       
+|_   _/  ___| (_) | v2.0.0a   
+  | | \ `--.| |_| |_ ___ 
+  | |  `--. \ | | __/ _ \
+  | | /\__/ / | | ||  __/
+  \_/ \____/|_|_|\__\___|
+  a lightwieght timeseries library
+```
+
 ## Synopsis
 
-A lightweight timeseries object for python 2.7+ and Python 3+
+A lightweight timeseries library for Python 3+
 
 ## Usage
 
 __Python3__
 `import tslite3`
 
-__Python 2.7+__
-`import tslite`
-
-##Example:
-
-TODO: Write API and example documentation.
-
 ## Motivation
 
-This effort evolved out of a project that ran on a server with draconian security which made it difficult to install dependenices for python libraries. Also, I wasn't happy with the state of timeseries libraries in python circa 2010. I still maintain this package, and it does some things that other timeseries computation and manipulation librares don't do. 
+This is an update to a timeseries library that I wrote years ago. I still use it manipulating timeseries for fun an profit.
+
+I wanted something that dealt with timeseries in an elagant scalable fashion. here are some examples:
+
+** snap arbitre
 
 ## Installation
 
 Download and place in the same directory as your project.
 
+## Breaking Changes
+
+in version 2 I'm cleaning up some cruft and introduced the following breaking changes:
+
+1. TSlite timeseries object is now a pure timeseries, I ripped out quality flags, which really should be stored in another timeseries.
+2. I standardized method names to be camelCase.
+3. IO routines now disregard quality flags, you can use v1 IO methods to convert old data stores.
 
 ## Contributors
 

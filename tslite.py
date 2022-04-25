@@ -76,9 +76,9 @@ class timeseries:
     if data != None:
       #set internal data member to data and filter out blanks
       for row in data:
-        if len(row) > 2:
+        if len(row) > 1:
           if row[1] != None:
-            self.safeinsert(row[0], row[1], quality=row[2])
+            self.safeinsert(row[0], row[1])
 
   #========================================================================
   # IO and data manipulation methods
@@ -176,10 +176,8 @@ class timeseries:
       if re.match(r'\S', s):  # Ignore blank lines
         tokens = s.split("\t")
         try:
-          if len(tokens) == 2:
+          if len(tokens) > 1:
             self.safeinsert(tokens[0], float(tokens[1]))
-          elif len(tokens) > 2:
-            self.safeinsert(tokens[0], tokens[1], quality=tokens[2])
         except:
           self.status = "Error Parsing line %u" % (count)
     return self
@@ -398,35 +396,35 @@ class timeseries:
         #change max index to search lower subarray
     return imid  # Key not found
 
-  def safeinsert(self, datestamp, value, quality=0):
+  def safeinsert(self, datestamp, value):
     '''takes raw input and attempts to make it work'''
     if isinstance(datestamp, str):
       datestamp = dateparser.parse(datestamp, fuzzy=True)
-    self.insert(datestamp, float(value), quality=float(quality))
+    self.insert(datestamp, float(value))
 
   def insert(self, datestamp, value, quality=0):
     '''Inserts a timestamp, value and quality into the timseries.
        this module assumes that datetimes are in acending order, as such please use this method when adding data'''
     l = len(self.data)
     if l == 0:
-      self.data.append([datestamp, value, quality])
+      self.data.append([datestamp, value])
       return
     if datestamp > self.data[-1][0]:
-      self.data.append([datestamp, value, quality])
+      self.data.append([datestamp, value])
       return
     i = self.findClosestIndex(datestamp)
     if datestamp == self.data[i][0]:
-      self.data[i] = [datestamp, value, quality]
+      self.data[i] = [datestamp, value]
       return
     i -= 2
     if i < 0:
       i = 0
     while i < l:
       if datestamp < self.data[i][0]:
-        self.data.insert(i, [datestamp, value, quality])
+        self.data.insert(i, [datestamp, value])
         return
       i += 1
-    self.data.append([datestamp, value, quality])
+    self.data.append([datestamp, value])
 
   def truncate(self, precision):
     '''Truncates values in timeseries to a given number of decimal places
@@ -1069,7 +1067,6 @@ class timeseries:
           startTime = self.data[0][0]
         if endTime > self.data[-1][0]:
           endTime = self.data[-1][0]
-        quality = self.data[i][2]
         n = 0
         sum = 0
         while self.data[i + n][0] <= endTime:
@@ -1078,7 +1075,7 @@ class timeseries:
           if i + n >= count:
             break
         if n != 0:
-          _data.append([self.data[i][0], sum / n, quality])
+          _data.append([self.data[i][0], sum / n])
         i += 1
     except Exception as e:
       self.status = str(e)
@@ -1100,8 +1097,7 @@ class timeseries:
       for line in self.data:
         key = line[0]
         if key in denom_data:
-          _data.append(
-              [line[0], 100 * float(line[1] / denom_data[key][1]), line[2]])
+          _data.append([line[0], 100 * float(line[1] / denom_data[key][1])])
     except Exception as e:
       self.status = str(e)
       return timeseries()
@@ -1137,7 +1133,7 @@ class timeseries:
             a = pos
           pos += 1
         if self.data[a][0] >= t - buffer and self.data[a][0] <= t + buffer:
-          output.data.append([t, self.data[a][1], self.data[a][2]])
+          output.data.append([t, self.data[a][1]])
         t += interval
     except Exception as e:
       self.status = str(e)
@@ -1281,12 +1277,12 @@ class timeseries:
       return timeseries()
     return timeseries(_data)
 
-  def cullvalues(self, value):
-    return self.cull(lambda x, y: x != y, float(value))
 
   def cull(self, op, operand):
     ''' culls data from self
-        op: lambda function to perform eg lambda x,y: x>y
+        op: lambda function to perform
+            example: lambda x,y: x > y 
+            would return values in this timeseries that are greater than y
         operand: could be a timeseries or a float
         returns a timeseries object
     '''
@@ -1294,7 +1290,7 @@ class timeseries:
     if self.data == []:
       return timeseries()
     try:
-      if type(operand) is float:
+      if type(operand) is float or type(operand) is int:
         for line in self.data:
           if op(line[1], operand):
             _data.append(line)
@@ -1308,6 +1304,33 @@ class timeseries:
       self.status = str(e)
       return timeseries()
     return timeseries(_data)
+
+  def cullValues(self, value):
+    '''
+    DEPRECATED: Culls data from timeseries equal to scalar
+    '''
+    return self.cull(lambda x, y: x != y, float(value))
+
+  def cullAbove(self, operand):
+    '''Culls values from self above operand
+       operand: accepts timeseries or a scalar
+       returns a timeseries object
+    '''
+    return self.cull (lambda x, y: x < y,operand)
+
+  def cullBelow(self, operand):
+    '''Culls values from self below to input
+       operand: accepts timeseries or a scalar
+       returns a timeseries object
+    '''
+    return self.cull (lambda x, y: x > y,operand)
+
+  def cullEqual(self, operand):
+    '''Culls values from self that are equal to input
+       operand: accepts timeseries or a scalar
+       returns a timeseries object
+    '''
+    return self.cull (lambda x, y: x != y, operand)
 
   def cut(self, other):
     ''' cuts a timeseries from self where datetimes intersect with
