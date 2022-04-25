@@ -5,7 +5,7 @@ v2.0.0
 Author: Gunnar Leffler
 '''
 
-import sys, os, time, datetime, struct, math, re
+import sys, os, time, datetime, struct, math, re, json
 import dateutil.parser as dateparser
 from functools import wraps
 
@@ -67,10 +67,10 @@ class timeseries:
 
   def __init__(self, data=None):
     '''"overloaded" timeseries constructor
-        expects data to be tuple of datetime obj, observation value (typically float), and a quality flag)'''
-
+        expects data to be tuple of (datetime obj, observation value)
+    '''
     self.status = "OK"
-    #Data is a nested list with the following structure [datetime,float value, float quality]
+    #Data is a nested list with the following structure [datetime, float value,``]
     self.data = []
     self.decimals = 3
     if data != None:
@@ -98,9 +98,9 @@ class timeseries:
 
   def __getitem__(self, idx):
     ''' returns (gets) a timeslice from self.data from supplied index.
-        Example : ts[1] would return [datetime,value,quality]'''
+        Example : ts[1] would return [datetime,value]'''
     if idx >= len(self.data):
-      return [None, None, None]
+      return [None, None]
     return self.data[idx]
 
   def __len__(self):
@@ -158,8 +158,7 @@ class timeseries:
 
   def loadTSV(self, path):
     '''Reads a timeseries from a tsv file. Hash (#) can be used as comments
-       Format <Datetime>\t<value>\t<quality>
-       if quality is not present,  will defualt to 0
+       Format <Datetime>\t<value>
        This method mutates the object, and also returns a pointer to self.
     '''
     lines = (line.rstrip("\n") for line in open(path, "r"))
@@ -403,7 +402,7 @@ class timeseries:
     self.insert(datestamp, float(value))
 
   def insert(self, datestamp, value, quality=0):
-    '''Inserts a timestamp, value and quality into the timseries.
+    '''Inserts a timestamp, value into the timseries.
        this module assumes that datetimes are in acending order, as such please use this method when adding data'''
     l = len(self.data)
     if l == 0:
@@ -429,10 +428,10 @@ class timeseries:
   def truncate(self, precision):
     '''Truncates values in timeseries to a given number of decimal places
     '''
-    fmt = '.' + str(precision) + 'f'
+    fmt = f'.{str(precision)}f'
     output = timeseries()
     for slice in self.data:
-      output.insert(slice[0], float(format(slice[1], fmt)), quality=slice[2])
+      output.insert(slice[0], float(format(slice[1], fmt)))
     return output
 
   def round(self, precision):
@@ -440,14 +439,14 @@ class timeseries:
     '''
     output = timeseries()
     for slice in self.data:
-      output.insert(slice[0], round(slice[1], precision), quality=slice[2])
+      output.insert(slice[0], round(slice[1], precision))
     return output
 
   def merge(self, other):
     '''Merges another timeseries into self, retruns resultant timeseries'''
     output = timeseries(self.data)
     for line in other.data:
-      output.insert(line[0], line[1], quality=line[2])
+      output.insert(line[0], line[1])
     return output
 
   def diff(self, other):
@@ -459,11 +458,11 @@ class timeseries:
         continue
       oslice = other.data[i]
       if format(slice[1], '.6f') != format(oslice[1], '.6f'):
-        output.insert(oslice[0], oslice[1], quality=oslice[2])
+        output.insert(oslice[0], oslice[1])
     for slice in other.data:
       i = self.findIndex(slice[0])
       if i == -1:
-        output.insert(slice[0], slice[1], quality=slice[2])
+        output.insert(slice[0], slice[1])
     return output
 
   def toHTML(self, css="", thead=""):
@@ -481,7 +480,7 @@ class timeseries:
 
   def toJS(self, var, timefmt="%m/%d/%Y %k:%M:%S"):
     '''returns self as a JS array'''
-    return "var %s = %s;\n" % (var, self.toJSON())
+    return "var %s = %s;\n" % (var, self.toJSON(timefmt=timefmt))
 
   def toJSON(self, timefmt="%m/%d/%Y %k:%M:%S"):
     '''returns self as a JSON object'''
@@ -492,6 +491,15 @@ class timeseries:
       except:
         output.append('  ["%s", undefined]' % line[0].strftime(timefmt))
     return "[\n%s\n]" % ",\n".join(output)
+
+  def fromJSON(self,s):
+    ts = timeseries()
+    try:
+      j = json.loads(s)
+      ts = timeseries(j)
+    except Exception as e:
+      self.status = str(e)
+    return ts
 
   def minDate(self, timefmt="%m/%d/%Y %k:%M:%S"):
     try:
@@ -520,13 +528,13 @@ class timeseries:
         startTime = self.data[i][0]
         deltaT = (self.data[i + 1][0] - startTime)
         steps = int(deltaT.total_seconds() / interval.total_seconds())
-        quality = self.data[i][2]
+        
         for j in range(0, steps):
           value = self.interpolateValue(0, self.data[i][1],
                                         deltaT.total_seconds(),
                                         self.data[i + 1][1],
                                         j * interval.total_seconds())
-          _data.append([startTime + (interval * j), value, quality])
+          _data.append([startTime + (interval * j), value])
     except Exception as e:
       self.status = str(e)
     return timeseries(_data)
@@ -546,7 +554,6 @@ class timeseries:
       while i < count:
         startTime = endTime
         endTime = startTime + interval
-        quality = self.data[i][2]
         n = 0
         sum = 0
         while self.data[i][0] < endTime:
@@ -556,7 +563,7 @@ class timeseries:
           if i >= count:
             break
         if n != 0:
-          _data.append([endTime, sum / n, quality])
+          _data.append([endTime, sum / n])
     except Exception as e:
       self.status = str(e)
     return timeseries(_data)
@@ -623,9 +630,9 @@ class timeseries:
     coeff = self.linreg()
     m = coeff[0]
     b = coeff[1]
-    for tmslice in self.data:
-      x = time.mktime(tmslice[0].timetuple())
-      output.insert(tmslice[0], m * x + b, quality=tmslice[2])
+    for slice in self.data:
+      x = time.mktime(slice[0].timetuple())
+      output.insert(slice[0], m * x + b)
     return output
 
   def variance(self):
@@ -675,7 +682,7 @@ class timeseries:
         if line[0] > endtime:
           break
         if line[0] >= starttime:
-          output.insert(line[0], line[1], quality=line[2])
+          output.insert(line[0], line[1])
         a += 1
     return output
 
@@ -740,9 +747,8 @@ class timeseries:
               sum += val
           except:
             pass
-        quality = self.data[i][2]
         if n != 0:
-          _data.append([t, sum / n, quality])
+          _data.append([t, sum / n])
         i += 1
     except Exception as e:
       self.status = str(e)
@@ -755,7 +761,7 @@ class timeseries:
     sum = 0
     for row in self.data:
       sum += row[1]
-      output.insert (row[0],sum,row[2])
+      output.insert (row[0],sum)
     return output
 
   def accumulate(self, interval, override_startTime=None):
@@ -775,7 +781,7 @@ class timeseries:
       while i < count:
         startTime = endTime
         endTime = startTime + interval
-        quality = self.data[i][2]
+        
         n = 0
         sum = 0
         while self.data[i][0] < endTime:
@@ -785,7 +791,7 @@ class timeseries:
           if i >= count:
             break
         if n != 0:
-          _data.append([endTime, sum, quality])
+          _data.append([endTime, sum])
     except Exception as e:
       self.status = str(e)
     return timeseries(_data)
@@ -829,7 +835,7 @@ class timeseries:
           total = 0
           lastResetYear = slice[0].year
         total += slice[1]
-        output.insert(slice[0], total, quality=slice[2])
+        output.insert(slice[0], total)
         #print "%s\t %f\t %f" %(str(slice[0]),slice[1],total)
     except Exception as e:
       self.status = str(e)
@@ -847,7 +853,7 @@ class timeseries:
     try:
       for i in range(1, len(self.data)):
         d = self.data[i][1] - self.data[i - 1][1]
-        output.insert(self.data[i][0], d, quality=self.data[i][2])
+        output.insert(self.data[i][0], d)
     except Exception as e:
       self.status = str(e)
     return output
@@ -867,7 +873,6 @@ class timeseries:
       while i < count:
         startTime = endTime
         endTime = startTime + interval
-        quality = self.data[i][2]
         n = 0
         probe = self.data[i][1]
         while self.data[i][0] < endTime:
@@ -876,7 +881,7 @@ class timeseries:
           i += 1
           if i >= count:
             break
-        _data.append([endTime, probe, quality])
+        _data.append([endTime, probe])
     except Exception as e:
       self.status = str(e)
     return timeseries(_data)
@@ -984,7 +989,7 @@ class timeseries:
     # these will get interpolated later
     for x in range(0, len(self.data)):
       if out[x] != None:
-        _data.append([self.data[x][0], out[x], self.data[x][2]])
+        _data.append([self.data[x][0], out[x]])
 
     return timeseries(_data)
 
@@ -1003,7 +1008,6 @@ class timeseries:
         endTime = startTime + interval
         if endTime > self.data[-1][0]:
           break
-        quality = self.data[i][2]
         n = 0
         sum = 0
         while self.data[i + n][0] <= endTime:
@@ -1012,7 +1016,7 @@ class timeseries:
           if i + n >= count:
             break
         if n != 0:
-          _data.append([endTime, sum / n, quality])
+          _data.append([endTime, sum / n])
         i += 1
     except Exception as e:
       self.status = str(e)
@@ -1032,7 +1036,7 @@ class timeseries:
         startTime = endTime - interval
         if startTime < self.data[0][0]:
           break
-        quality = self.data[i][2]
+        
         n = 0
         sum = 0
         while self.data[i - n][0] >= startTime:
@@ -1041,7 +1045,7 @@ class timeseries:
           if i - n < 0:
             break
         if n != 0:
-          _data.append([endTime, sum / n, quality])
+          _data.append([endTime, sum / n])
         i -= 1
     except Exception as e:
       self.status = str(e)
@@ -1153,7 +1157,6 @@ class timeseries:
     try:
       #setup the initial start time and value
       val = 0
-      qual = 0
       i = 0
       endtime = self.data[-1][0]
       if _endtime != None:
@@ -1172,18 +1175,16 @@ class timeseries:
       else:
         t = self.data[0][0]
         val = self.data[0][1]
-        qual = self.data[0][2]
       while t <= endtime and i < len(self.data):
         while self.data[i][0] <= t:
           val = self.data[i][1]
-          qual = self.data[i][2]
           i += 1
           if i == len(self.data):  #fill to the end time
             while t < endtime:
-              ts.insert(t, val, quality=qual)
+              ts.insert(t, val)
               t += interval
             break
-        ts.insert(t, val, quality=qual)
+        ts.insert(t, val)
         t += interval
     except Exception as e:
       self.status = str(e)
@@ -1214,7 +1215,7 @@ class timeseries:
         t += interval
         try:
           while self.data[i][0] <= t:
-            ts.insert(self.data[i][0], self.data[i][1], quality=self.data[i][2])
+            ts.insert(self.data[i][0], self.data[i][1])
             i += 1
         except:
           pass
@@ -1232,7 +1233,7 @@ class timeseries:
       return timeseries()
     try:
       for line in self.data:
-        _data.append([line[0] + tdelta, line[1], line[2]])
+        _data.append([line[0] + tdelta, line[1]])
     except Exception as e:
       self.status = str(e)
       return timeseries()
@@ -1266,12 +1267,12 @@ class timeseries:
     try:
       if type(operand) is float or type(operand) is int:
         for line in self.data:
-          _data.append([line[0], op(line[1], operand), line[2]])
+          _data.append([line[0], op(line[1], operand)])
       else:
         for line in self.data:
           val = operand.findValue(line[0])
           if val != None:
-            _data.append([line[0], op(line[1], val), line[2]])
+            _data.append([line[0], op(line[1], val)])
     except Exception as e:
       self.status = str(e)
       return timeseries()
@@ -1344,7 +1345,7 @@ class timeseries:
       for line in other.data:
         val = self.findValue(line[0])
         if val != None:
-          output.insert(line[0], line[1], quality=line[2])
+          output.insert(line[0], line[1])
     except Exception as e:
       self.status = str(e)
       return timeseries()
@@ -1489,14 +1490,14 @@ class rdb:
     """ Generates a new time series with rated values from another """
     output = []
     for line in ts.data:
-      output.append([line[0], self.rate(line[1]), line[2]])
+      output.append([line[0], self.rate(line[1])])
     return timeseries(output)
 
   def reverseRateTS(self, ts):
     """ Generates a new time series with reverse-rated values from another """
     output = []
     for line in ts.data:
-      output.append([line[0], self.rate2(line[1]), line[2]])
+      output.append([line[0], self.rate2(line[1])])
     return timeseries(output)
 
   rateTS2 = reverseRateTS  ## backwards compatibility
@@ -1573,7 +1574,7 @@ class tablegrid:
       rowval = rows.findValue(line[0])
       if rowval != None:
         output.append(
-            [line[0], self.tableLookup(self.data, line[1], rowval), line[2]])
+            [line[0], self.tableLookup(self.data, line[1], rowval)])
     return timeseries(output)
 
 

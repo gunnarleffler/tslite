@@ -157,18 +157,22 @@ t2 = t.cut(t1)
 
 #toJSON
 #----------------------------------------------------------------
-probe = open("test/test.json", "r").read()
-result("toJSON", t1.toJSON() == probe)
+t = tslite.timeseries().fromJSON(open("test/test.json", "r").read())
+t1 = tslite.timeseries().fromJSON(t.toJSON())
+result("fromJSON and toJSON", t == t1)
+#print (t.status,"test",t.toJSON(),"probe",t1)
 
 #Round
 #----------------------------------------------------------------
+t = tslite.timeseries().fromJSON(open("test/test.json", "r").read())
 probe = tslite.timeseries().loadTSV("test/round.tsv")
-result("round", t1.round(2) == probe)
+result("round", t.round(2) == probe)
 
 #Truncate
 #----------------------------------------------------------------
+t = tslite.timeseries().fromJSON(open("test/test.json", "r").read())
 probe = tslite.timeseries().loadTSV("test/truncate.tsv")
-result("truncate", t1.truncate(2) == probe)
+result("truncate", t.truncate(2) == probe)
 
 #First Difference
 #----------------------------------------------------------------
